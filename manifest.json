@@ -1,8 +1,8 @@
 {
   "id": "com.harborclient.plugins.recent-requests",
   "name": "Recent Requests",
-  "version": "1.0.0",
-  "company": "HarborClient",
+  "version": "1.0.1",
+  "author": "HarborClient",
   "description": "README.md",
   "engines": {
     "harborclient": ">=1.8.4"

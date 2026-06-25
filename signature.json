@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "pluginId": "com.harborclient.plugins.recent-requests",
+  "pluginVersion": "1.0.1",
+  "algorithm": "Ed25519",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97"
+    },
+    {
+      "path": "dist/main.js",
+      "sha256": "73d646d07aaa435487cf0786efd2457a2a1ab3e8c8268e511f4e7a9c5d95af97"
+    },
+    {
+      "path": "dist/renderer.js",
+      "sha256": "0d1afbe5e31fef9cc22456273a5606fb9fc1e1b42612d976dc302cec185b1724"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "651f0813bd2bc643932878fc6eeb86492817430d1744517cf997dbb0fb424690"
+    },
+    {
+      "path": "package.json",
+      "sha256": "831bf8f981014b3482ab7c3c44f864a1c81f0085db0b56e6ace8440788ccf0e4"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "b81e5f7ad043e9ff68d24952f8f0d3207ed1b6c26751920b8017d4be29949caf"
+    },
+    {
+      "path": "README.md",
+      "sha256": "071921556469137abc1c923c24d40d430e4f33c9d965d6477403be101d213569"
+    },
+    {
+      "path": "screenshot.png",
+      "sha256": "f63b221e9d76c04768b3fe312d75af9d36dea9bc99ac8595d0a795704c8efa74"
+    },
+    {
+      "path": "scripts/plugin-sign.ts",
+      "sha256": "6646535c3a65cbcdc0f22e9176025e0f1eed4f48143ef4950e085dae06cad2c1"
+    },
+    {
+      "path": "scripts/plugin-verify.ts",
+      "sha256": "7f1f2407a2a8fac287d88e18f48db22d926c7de656c06143dd7baf3f30898620"
+    },
+    {
+      "path": "scripts/verify.mjs",
+      "sha256": "e758ea61c682ec7258158568dc546e9d9a7eeb69dff0763565801a2b6f59f644"
+    },
+    {
+      "path": "src/renderer.tsx",
+      "sha256": "c45fa6ad733bc8398b56c8cc12fd46bc3ee70f3888a3157ee6e2156944c948a3"
+    },
+    {
+      "path": "src/shared.ts",
+      "sha256": "cbef2e434c94aceb9548a877540a70d6a92522e3f3bad4195df64fb0ba8de396"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "4a5bcae5118c14fccd957de9c08e5bb48053383bd876af4cb964c7b1ff4c31f8"
+    }
+  ],
+  "signature": "+grm1oZEx6YiLqeTAFyRlChhG9XSM5Vi+NSXvlNf5rpeRpmrk3EWSXpj+ixEb5oX6cEEd9Y2zKELl2eWH3JODA=="
+}
