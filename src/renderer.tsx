@@ -1,15 +1,15 @@
-import { installReact } from "@harborclient/plugin-api";
+import { installReact } from "@harborclient/sdk";
 import {
   useCallback,
   useSyncExternalStore,
-} from "@harborclient/plugin-api/react";
-import type { PluginContext } from "@harborclient/plugin-api";
-import { createCappedList } from "@harborclient/plugin-api/storage";
-import { createExternalStore } from "@harborclient/plugin-api/store";
+} from "@harborclient/sdk/react";
+import type { PluginContext } from "@harborclient/sdk";
+import { createCappedList } from "@harborclient/sdk/storage";
+import { createExternalStore } from "@harborclient/sdk/store";
 import {
   formatRelativeTime,
   methodColorClass,
-} from "@harborclient/plugin-api/ui";
+} from "@harborclient/sdk/ui";
 import { PERSISTED_CAP, STORAGE_KEY, type RecentEntry } from "./shared";
 
 /** Sequence counter disambiguating ids captured within the same millisecond. */
@@ -143,9 +143,8 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
             type="button"
             className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text"
             title={entry.url}
-            aria-label={`Open ${entry.name}, ${entry.method} ${
-              entry.url
-            }, status ${entry.status}, ${formatRelativeTime(entry.ts)}`}
+            aria-label={`Open ${entry.name}, ${entry.method} ${entry.url
+              }, status ${entry.status}, ${formatRelativeTime(entry.ts)}`}
             onClick={() => handleOpenEntry(entry)}
           >
             <span

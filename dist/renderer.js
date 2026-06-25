@@ -1,4 +1,4 @@
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/reactHost.js
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/reactHost.js
 var hostReact = null;
 function setHostReact(react) {
   hostReact = react;
@@ -12,12 +12,12 @@ function requireHostReact() {
   return hostReact;
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/index.js
 function installReact(react) {
   setHostReact(react);
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/react.js
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/react.js
 function hook(name) {
   const react = requireHostReact();
   const fn = react[name];
@@ -33,7 +33,7 @@ function useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
   return hook("useSyncExternalStore")(subscribe, getSnapshot, getServerSnapshot);
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/storage/cappedList.js
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/storage/cappedList.js
 function mergeById(pending, existing, options) {
   if (pending.length === 0) {
     return existing.slice(0, options.cap);
@@ -115,7 +115,7 @@ function createCappedList(options) {
   };
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/store.js
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/store.js
 function createExternalStore(initial) {
   let state = initial;
   const listeners = /* @__PURE__ */ new Set();
@@ -136,7 +136,7 @@ function createExternalStore(initial) {
   };
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/ui/format.js
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/ui/format.js
 function formatRelativeTime(ts, now = Date.now()) {
   const seconds = Math.floor((now - ts) / 1e3);
   if (seconds < 5) {
@@ -157,7 +157,7 @@ function formatRelativeTime(ts, now = Date.now()) {
   return `${days}d ago`;
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/ui/tokens.js
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/ui/tokens.js
 var METHOD_CLASSES = {
   get: "text-method-get",
   post: "text-method-post",
@@ -175,8 +175,8 @@ function methodColorClass(method) {
 var PERSISTED_CAP = 100;
 var STORAGE_KEY = "recent";
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/jsx-runtime.js
-var Fragment = Symbol.for("@harborclient/plugin-api.Fragment");
+// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/jsx-runtime.js
+var Fragment = Symbol.for("@harborclient/sdk.Fragment");
 function build(type, props, key) {
   const react = requireHostReact();
   const elementType = type === Fragment ? react.Fragment : type;

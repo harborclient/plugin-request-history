@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "pluginId": "com.harborclient.plugins.recent-requests",
-  "pluginVersion": "1.0.2",
+  "pluginVersion": "1.0.3",
   "algorithm": "Ed25519",
   "files": [
     {
@@ -14,19 +14,19 @@
     },
     {
       "path": "dist/renderer.js",
-      "sha256": "0d1afbe5e31fef9cc22456273a5606fb9fc1e1b42612d976dc302cec185b1724"
+      "sha256": "82f3b97950363281a6730d3e5500bd06dbd5132b6e27c17b84a01249aaa1484a"
     },
     {
       "path": "manifest.json",
-      "sha256": "114292f9b29c4fcd813f5cedebdb433739ebb87a27e612058a3eb4bd8e9c3292"
+      "sha256": "0ed92c6fc8e57a3888d602bc510d5fcea26bd8e41d3176c6bf3d9ca471f5fa5b"
     },
     {
       "path": "package.json",
-      "sha256": "13a38ae153cf24e9af742ca49fcae9dfdf71fa38e5920b01a8dd90c04b1d3c33"
+      "sha256": "17c393cda8f5a27713ebde1e4a8e8eb58ad958ceaea484fb5ae979d5ddd9ca99"
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "b81e5f7ad043e9ff68d24952f8f0d3207ed1b6c26751920b8017d4be29949caf"
+      "sha256": "bd297206b420bc6796a0c1b93beda0e406993cc2918f0a3d96b970f93dc3d29c"
     },
     {
       "path": "README.md",
@@ -38,11 +38,11 @@
     },
     {
       "path": "scripts/plugin-sign.ts",
-      "sha256": "6646535c3a65cbcdc0f22e9176025e0f1eed4f48143ef4950e085dae06cad2c1"
+      "sha256": "dc21f6daa2c0d454b53cc719524f41669c1f1a0319b80b50dc1f0b3fa3f796e3"
     },
     {
       "path": "scripts/plugin-verify.ts",
-      "sha256": "7f1f2407a2a8fac287d88e18f48db22d926c7de656c06143dd7baf3f30898620"
+      "sha256": "555f897860b881817f6aa66a933a38fb31388b461b8fa1e9e9b6126b67bc18e0"
     },
     {
       "path": "scripts/render-screenshot.sh",
@@ -58,7 +58,7 @@
     },
     {
       "path": "src/renderer.tsx",
-      "sha256": "c45fa6ad733bc8398b56c8cc12fd46bc3ee70f3888a3157ee6e2156944c948a3"
+      "sha256": "1eae736685ef8dfb40463657608dbc0d6cb365ecb632dbd46e26282705cdeae6"
     },
     {
       "path": "src/shared.ts",
@@ -66,8 +66,8 @@
     },
     {
       "path": "tsconfig.json",
-      "sha256": "4a5bcae5118c14fccd957de9c08e5bb48053383bd876af4cb964c7b1ff4c31f8"
+      "sha256": "55a7e747c00a1faa1a3d19d14dfa5a3605892d8744a3bdd6dcb4d74c09f27455"
     }
   ],
-  "signature": "RzKtGfzEUifS5WdEb4PwcHkQ7j0jnPZXs7Dh05kobECaMZ5NqOba1msM+J5y6kpDPBaFY2sgE9S3Dsp2vC4TBw=="
+  "signature": "sLC6vCp5kbAza23gbrmJMP72TvFgaCVBjHXQGcyadwNU7iEOTxST7yq6mDBv35Dj1m8EPCrPYC33063yzDvJAw=="
 }

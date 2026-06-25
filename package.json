@@ -1,11 +1,11 @@
 {
   "name": "harborclient-plugin-recent-requests",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom",
+    "build": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/sdk --external:react --external:react-dom",
     "verify": "node scripts/verify.mjs",
-    "dev": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom --watch",
+    "dev": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/sdk --external:react --external:react-dom --watch",
     "plugin:sign": "node --experimental-strip-types scripts/plugin-sign.ts",
     "plugin:verify": "node --experimental-strip-types scripts/plugin-verify.ts"
   },
