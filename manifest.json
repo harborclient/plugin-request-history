@@ -1,0 +1,21 @@
+{
+  "id": "com.harborclient.plugins.recent-requests",
+  "name": "Recent Requests",
+  "version": "1.0.0",
+  "company": "HarborClient",
+  "description": "README.md",
+  "engines": {
+    "harborclient": ">=1.7.0"
+  },
+  "renderer": "dist/renderer.js",
+  "main": "dist/main.js",
+  "permissions": ["ui", "storage", "http", "ipc"],
+  "contributes": {
+    "sidebarSections": [
+      {
+        "id": "recent-requests",
+        "title": "Recent Requests"
+      }
+    ]
+  }
+}
