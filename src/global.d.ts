@@ -7,6 +7,7 @@ interface HarborClientApi {
     channel: string,
     args: unknown[]
   ) => Promise<unknown>;
+  activatePluginMain: (pluginId: string) => Promise<void>;
 }
 
 declare global {

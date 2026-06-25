@@ -64,13 +64,55 @@ function subscribeStore(listener) {
 function getStoreSnapshot() {
   return storeEntries;
 }
+function normalizeRecentEntry(entry) {
+  return {
+    ...entry,
+    name: entry.name?.trim() || entry.url,
+    headers: entry.headers ?? {},
+    params: entry.params ?? [],
+    body: entry.body ?? ""
+  };
+}
+async function openRecentEntry(entry, hc) {
+  const normalized = normalizeRecentEntry(entry);
+  if (normalized.savedRequestId != null) {
+    try {
+      await hc.commands.execute(
+        "harborclient:loadRequest",
+        normalized.savedRequestId
+      );
+      return;
+    } catch {
+    }
+  }
+  await hc.commands.execute("harborclient:openRequestDraft", {
+    name: normalized.name,
+    method: normalized.method,
+    url: normalized.url,
+    headers: normalized.headers,
+    params: normalized.params,
+    body: normalized.body,
+    bodyType: normalized.bodyType
+  });
+}
+function isMainInactiveError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("Plugin main runtime is not active");
+}
+async function invokeMain(channel, args = []) {
+  try {
+    return await window.api.invokePluginMain(PLUGIN_ID, channel, args);
+  } catch (error) {
+    if (!isMainInactiveError(error)) {
+      throw error;
+    }
+    await window.api.activatePluginMain(PLUGIN_ID);
+    return await window.api.invokePluginMain(PLUGIN_ID, channel, args);
+  }
+}
 async function syncFromMain(hc) {
   try {
-    const session = await window.api.invokePluginMain(
-      PLUGIN_ID,
-      "getRecent",
-      []
-    );
+    const session = await invokeMain("getRecent", []);
     if (!Array.isArray(session) || session.length === 0) {
       return;
     }
@@ -78,14 +120,15 @@ async function syncFromMain(hc) {
     if (!merged) {
       return;
     }
-    setStoreEntries(merged);
-    await hc.storage.set(STORAGE_KEY, merged);
+    const normalized = merged.map(normalizeRecentEntry);
+    setStoreEntries(normalized);
+    await hc.storage.set(STORAGE_KEY, normalized);
   } catch {
   }
 }
 async function clearRecent(hc) {
   try {
-    await window.api.invokePluginMain(PLUGIN_ID, "clear", []);
+    await invokeMain("clear", []);
   } catch {
   }
   setStoreEntries([]);
@@ -99,10 +142,8 @@ function createRecentRequestsSection(React, hc) {
       getStoreSnapshot,
       () => []
     );
-    const handleCopyUrl = useCallback((url) => {
-      void navigator.clipboard.writeText(url).then(() => {
-        hc.ui.showToast("URL copied");
-      });
+    const handleOpenEntry = useCallback((entry) => {
+      void openRecentEntry(entry, hc);
     }, []);
     const handleClear = useCallback(() => {
       void clearRecent(hc);
@@ -140,10 +181,10 @@ function createRecentRequestsSection(React, hc) {
             "button",
             {
               type: "button",
-              className: "flex min-w-0 flex-1 cursor-pointer items-center gap-2 border-none bg-transparent p-0 text-left text-[14px] text-text",
+              className: "flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text",
               title: entry.url,
-              "aria-label": `${entry.method} ${entry.url}, status ${entry.status}, ${formatRelativeTime(entry.ts)}`,
-              onClick: () => handleCopyUrl(entry.url)
+              "aria-label": `Open ${entry.name}, ${entry.method} ${entry.url}, status ${entry.status}, ${formatRelativeTime(entry.ts)}`,
+              onClick: () => handleOpenEntry(entry)
             },
             h(
               "span",
@@ -157,8 +198,8 @@ function createRecentRequestsSection(React, hc) {
             ),
             h(
               "span",
-              { className: "min-w-0 flex-1 truncate text-text" },
-              entry.url
+              { className: "min-w-0 flex-1 truncate text-[14px] text-text" },
+              entry.name
             ),
             h(
               "span",
@@ -181,7 +222,7 @@ function activate(hc) {
   const RecentRequestsSection = createRecentRequestsSection(hc.react, hc);
   void hc.storage.get(STORAGE_KEY).then((saved) => {
     if (Array.isArray(saved) && saved.length > 0) {
-      setStoreEntries(saved.slice(0, PERSISTED_CAP));
+      setStoreEntries(saved.slice(0, PERSISTED_CAP).map(normalizeRecentEntry));
     }
   });
   void syncFromMain(hc);

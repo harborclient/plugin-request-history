@@ -4,8 +4,18 @@ import { SESSION_CAP, type RecentEntry } from "./shared";
 /** Session buffer of captured requests, newest first. */
 let entries: RecentEntry[] = [];
 
-/** Monotonic counter for entry ids within this activation. */
-let nextId = 1;
+/** Sequence counter disambiguating ids captured within the same millisecond. */
+let entrySequence = 0;
+
+/**
+ * Returns a capture id that stays unique across main-process reactivations.
+ *
+ * @returns Numeric id combining epoch milliseconds and a per-ms sequence.
+ */
+function nextEntryId(): number {
+  entrySequence += 1;
+  return Date.now() * 1000 + (entrySequence % 1000);
+}
 
 /**
  * Prepends a captured exchange and trims the buffer to the session cap.
@@ -28,12 +38,18 @@ export function activate(hc: MainPluginContext): void {
   hc.subscriptions.push(
     hc.http.onAfterSend((request, response) => {
       pushEntry({
-        id: nextId++,
+        id: nextEntryId(),
         method: request.method,
         url: request.url,
         status: response.status,
         statusText: response.statusText,
         ts: Date.now(),
+        savedRequestId: request.sourceRequestId,
+        name: request.sourceRequestName?.trim() || request.url,
+        headers: { ...request.headers },
+        params: request.params ? [...request.params] : [],
+        body: request.body,
+        bodyType: request.bodyType,
       });
     })
   );
@@ -52,5 +68,5 @@ export function activate(hc: MainPluginContext): void {
  */
 export function deactivate(): void {
   entries = [];
-  nextId = 1;
+  entrySequence = 0;
 }

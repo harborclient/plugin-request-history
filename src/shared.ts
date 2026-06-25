@@ -24,11 +24,19 @@ export const POLL_INTERVAL_MS = 2000;
 export const STORAGE_KEY = "recent";
 
 /**
+ * Serializable query parameter captured from a sent request.
+ */
+export interface RecentEntryParam {
+  key: string;
+  value: string;
+}
+
+/**
  * One recorded HTTP exchange shown in the Recent Requests sidebar.
  */
 export interface RecentEntry {
   /**
-   * Monotonic id assigned when the entry is captured in the main process.
+   * Numeric id unique across main-process reactivations (timestamp + sequence).
    */
   id: number;
 
@@ -56,4 +64,34 @@ export interface RecentEntry {
    * Unix epoch milliseconds when the response was received.
    */
   ts: number;
+
+  /**
+   * Saved collection request id when the send came from a collection request tab.
+   */
+  savedRequestId?: number;
+
+  /**
+   * Display label shown in the sidebar row.
+   */
+  name?: string;
+
+  /**
+   * Outgoing request headers captured at send time.
+   */
+  headers?: Record<string, string>;
+
+  /**
+   * Outgoing query parameters captured at send time.
+   */
+  params?: RecentEntryParam[];
+
+  /**
+   * Outgoing request body captured at send time.
+   */
+  body?: string;
+
+  /**
+   * Request body content type captured at send time.
+   */
+  bodyType?: string;
 }

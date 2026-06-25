@@ -117,17 +117,96 @@ function getStoreSnapshot(): RecentEntry[] {
 }
 
 /**
+ * Fills in defaults for entries persisted before capture metadata was expanded.
+ *
+ * @param entry - Stored or session recent entry.
+ * @returns Entry safe to render and reopen in the editor.
+ */
+function normalizeRecentEntry(entry: RecentEntry): RecentEntry {
+  return {
+    ...entry,
+    name: entry.name?.trim() || entry.url,
+    headers: entry.headers ?? {},
+    params: entry.params ?? [],
+    body: entry.body ?? "",
+  };
+}
+
+/**
+ * Opens a recent entry in the request editor.
+ *
+ * @param entry - Recent sidebar row to open.
+ * @param hc - Renderer plugin context.
+ */
+async function openRecentEntry(
+  entry: RecentEntry,
+  hc: PluginContext
+): Promise<void> {
+  const normalized = normalizeRecentEntry(entry);
+
+  if (normalized.savedRequestId != null) {
+    try {
+      await hc.commands.execute(
+        "harborclient:loadRequest",
+        normalized.savedRequestId
+      );
+      return;
+    } catch {
+      // Fall back to a draft tab when the saved request is not loaded in memory.
+    }
+  }
+
+  await hc.commands.execute("harborclient:openRequestDraft", {
+    name: normalized.name,
+    method: normalized.method,
+    url: normalized.url,
+    headers: normalized.headers,
+    params: normalized.params,
+    body: normalized.body,
+    bodyType: normalized.bodyType,
+  });
+}
+
+/**
+ * Returns whether an IPC error indicates the plugin main half needs reactivation.
+ *
+ * @param error - Thrown IPC error.
+ */
+function isMainInactiveError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("Plugin main runtime is not active");
+}
+
+/**
+ * Invokes a main-process IPC channel, reactivating the main half when the runner died.
+ *
+ * @param channel - Registered IPC channel name.
+ * @param args - Arguments passed to the handler.
+ * @returns Handler return value.
+ */
+async function invokeMain<T>(
+  channel: string,
+  args: unknown[] = []
+): Promise<T> {
+  try {
+    return (await window.api.invokePluginMain(PLUGIN_ID, channel, args)) as T;
+  } catch (error) {
+    if (!isMainInactiveError(error)) {
+      throw error;
+    }
+    await window.api.activatePluginMain(PLUGIN_ID);
+    return (await window.api.invokePluginMain(PLUGIN_ID, channel, args)) as T;
+  }
+}
+
+/**
  * Polls the main process for new session captures and persists when changed.
  *
  * @param hc - Renderer plugin context.
  */
 async function syncFromMain(hc: PluginContext): Promise<void> {
   try {
-    const session = (await window.api.invokePluginMain(
-      PLUGIN_ID,
-      "getRecent",
-      []
-    )) as RecentEntry[];
+    const session = await invokeMain<RecentEntry[]>("getRecent", []);
 
     if (!Array.isArray(session) || session.length === 0) {
       return;
@@ -138,8 +217,9 @@ async function syncFromMain(hc: PluginContext): Promise<void> {
       return;
     }
 
-    setStoreEntries(merged);
-    await hc.storage.set(STORAGE_KEY, merged);
+    const normalized = merged.map(normalizeRecentEntry);
+    setStoreEntries(normalized);
+    await hc.storage.set(STORAGE_KEY, normalized);
   } catch {
     // Ignore transient IPC failures during polling.
   }
@@ -152,7 +232,7 @@ async function syncFromMain(hc: PluginContext): Promise<void> {
  */
 async function clearRecent(hc: PluginContext): Promise<void> {
   try {
-    await window.api.invokePluginMain(PLUGIN_ID, "clear", []);
+    await invokeMain("clear", []);
   } catch {
     // Continue clearing local state even if main IPC fails.
   }
@@ -184,14 +264,12 @@ function createRecentRequestsSection(
     );
 
     /**
-     * Copies a request URL to the clipboard and shows confirmation.
+     * Opens the recent entry in the request editor.
      *
-     * @param url - URL to copy.
+     * @param entry - Recent sidebar row to open.
      */
-    const handleCopyUrl = useCallback((url: string): void => {
-      void navigator.clipboard.writeText(url).then(() => {
-        hc.ui.showToast("URL copied");
-      });
+    const handleOpenEntry = useCallback((entry: RecentEntry): void => {
+      void openRecentEntry(entry, hc);
     }, []);
 
     /**
@@ -241,12 +319,12 @@ function createRecentRequestsSection(
             {
               type: "button",
               className:
-                "flex min-w-0 flex-1 cursor-pointer items-center gap-2 border-none bg-transparent p-0 text-left text-[14px] text-text",
+                "flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text",
               title: entry.url,
-              "aria-label": `${entry.method} ${entry.url}, status ${
-                entry.status
-              }, ${formatRelativeTime(entry.ts)}`,
-              onClick: () => handleCopyUrl(entry.url),
+              "aria-label": `Open ${entry.name}, ${entry.method} ${
+                entry.url
+              }, status ${entry.status}, ${formatRelativeTime(entry.ts)}`,
+              onClick: () => handleOpenEntry(entry),
             },
             h(
               "span",
@@ -260,8 +338,8 @@ function createRecentRequestsSection(
             ),
             h(
               "span",
-              { className: "min-w-0 flex-1 truncate text-text" },
-              entry.url
+              { className: "min-w-0 flex-1 truncate text-[14px] text-text" },
+              entry.name
             ),
             h(
               "span",
@@ -293,7 +371,7 @@ export function activate(hc: PluginContext): void {
 
   void hc.storage.get<RecentEntry[]>(STORAGE_KEY).then((saved) => {
     if (Array.isArray(saved) && saved.length > 0) {
-      setStoreEntries(saved.slice(0, PERSISTED_CAP));
+      setStoreEntries(saved.slice(0, PERSISTED_CAP).map(normalizeRecentEntry));
     }
   });
 

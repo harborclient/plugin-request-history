@@ -7,7 +7,7 @@ A HarborClient plugin that records every completed HTTP request and displays the
 - Captures method, URL, status code, and timestamp for each send
 - Collapsible sidebar section matching the built-in Collections / Environments pattern
 - Persists history across app restarts (up to 100 entries)
-- Click a row to copy its URL to the clipboard
+- Click a row to open the request in the editor (collection requests reopen their saved tab; others open a draft with captured method, URL, headers, params, and body)
 - Clear button to remove all recent entries
 
 ## Permissions
@@ -23,7 +23,7 @@ A HarborClient plugin that records every completed HTTP request and displays the
 
 - Only **completed** exchanges are recorded. Network-level failures (DNS, timeout, connection refused) are not captured because the host fires `onAfterSend` only when `result.error` is absent.
 - HTTP error responses (4xx, 5xx) **are** recorded.
-- Clicking a row copies the URL; there is no plugin API to load a request into the editor.
+- Saved collection requests reopen only when that request is already loaded in memory or its collection is open in the sidebar cache.
 
 ## Development
 
