@@ -24,7 +24,7 @@ assert(
   "manifest id"
 );
 assert(manifest.renderer === "dist/renderer.js", "renderer entry");
-assert(manifest.main === "dist/main.js", "main entry");
+assert(manifest.main == null, "renderer-only plugin has no main entry");
 assert(
   manifest.contributes?.sidebarSections?.[0]?.id === "recent-requests",
   "sidebar section contribution"
@@ -33,20 +33,15 @@ assert(
   manifest.permissions.includes("ui") &&
     manifest.permissions.includes("storage") &&
     manifest.permissions.includes("http") &&
-    manifest.permissions.includes("ipc"),
+    !manifest.permissions.includes("ipc"),
   "permissions"
 );
 
-const mainPath = join(root, manifest.main);
 const rendererPath = join(root, manifest.renderer);
-assert(existsSync(mainPath), "dist/main.js exists");
 assert(existsSync(rendererPath), "dist/renderer.js exists");
 
-const main = readFileSync(mainPath, "utf8");
 const renderer = readFileSync(rendererPath, "utf8");
-assert(main.includes("onAfterSend"), "main captures after send");
-assert(main.includes("getRecent"), "main exposes getRecent IPC");
-assert(main.includes("export"), "main exports activate");
+assert(renderer.includes("onAfterSend"), "renderer captures after send");
 assert(
   renderer.includes("registerSidebarSection"),
   "renderer registers sidebar"
@@ -56,5 +51,9 @@ assert(
   "renderer avoids jsx-runtime import"
 );
 assert(renderer.includes("export"), "renderer exports activate");
+assert(
+  !renderer.includes("invokePluginMain"),
+  "renderer does not use main IPC"
+);
 
 console.log("All plugin verification checks passed.");

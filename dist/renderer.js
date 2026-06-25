@@ -1,4 +1,4 @@
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.0_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/reactHost.js
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/reactHost.js
 var hostReact = null;
 function setHostReact(react) {
   hostReact = react;
@@ -12,12 +12,12 @@ function requireHostReact() {
   return hostReact;
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.0_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/index.js
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/index.js
 function installReact(react) {
   setHostReact(react);
 }
 
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.0_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/react.js
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/react.js
 function hook(name) {
   const react = requireHostReact();
   const fn = react[name];
@@ -33,42 +33,112 @@ function useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
   return hook("useSyncExternalStore")(subscribe, getSnapshot, getServerSnapshot);
 }
 
-// src/shared.ts
-var PERSISTED_CAP = 100;
-var POLL_INTERVAL_MS = 2e3;
-var STORAGE_KEY = "recent";
-
-// node_modules/.pnpm/@harborclient+plugin-api@0.3.0_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/jsx-runtime.js
-var Fragment = Symbol.for("@harborclient/plugin-api.Fragment");
-function build(type, props, key) {
-  const react = requireHostReact();
-  const elementType = type === Fragment ? react.Fragment : type;
-  const { children, ...rest } = props ?? {};
-  if (key !== void 0) {
-    rest.key = key;
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/storage/cappedList.js
+function mergeById(pending, existing, options) {
+  if (pending.length === 0) {
+    return existing.slice(0, options.cap);
   }
-  return react.createElement(elementType, rest, children);
+  const seen = /* @__PURE__ */ new Set();
+  const merged = [];
+  for (const entry of [...pending, ...existing]) {
+    const id = options.idOf(entry);
+    if (seen.has(id)) {
+      continue;
+    }
+    seen.add(id);
+    merged.push(entry);
+    if (merged.length >= options.cap) {
+      break;
+    }
+  }
+  return merged;
 }
-var jsx = build;
-var jsxs = build;
+var writeQueues = /* @__PURE__ */ new Map();
+async function enqueueStorageWrite(key, operation) {
+  const previous = writeQueues.get(key) ?? Promise.resolve();
+  let resolveDone;
+  const done = new Promise((resolve) => {
+    resolveDone = resolve;
+  });
+  writeQueues.set(key, previous.then(() => done));
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    resolveDone();
+    if (writeQueues.get(key) === done) {
+      writeQueues.delete(key);
+    }
+  }
+}
+function createCappedList(options) {
+  const queueKey = options.key;
+  return {
+    load: async () => {
+      const saved = await options.storage.get(options.key);
+      return Array.isArray(saved) ? saved.slice(0, options.cap) : [];
+    },
+    merge: async (pending) => {
+      if (pending.length === 0) {
+        return null;
+      }
+      return enqueueStorageWrite(queueKey, async () => {
+        const existing = await options.storage.get(options.key);
+        const current = Array.isArray(existing) ? existing : [];
+        const merged = mergeById(pending, current, options);
+        if (merged.length === current.length) {
+          let unchanged = true;
+          for (let index = 0; index < merged.length; index += 1) {
+            if (options.idOf(merged[index]) !== options.idOf(current[index])) {
+              unchanged = false;
+              break;
+            }
+          }
+          if (unchanged) {
+            return null;
+          }
+        }
+        await options.storage.set(options.key, merged);
+        return merged;
+      });
+    },
+    save: async (entries) => {
+      await enqueueStorageWrite(queueKey, async () => {
+        await options.storage.set(options.key, entries.slice(0, options.cap));
+      });
+    },
+    clear: async () => {
+      await enqueueStorageWrite(queueKey, async () => {
+        await options.storage.set(options.key, []);
+      });
+    }
+  };
+}
 
-// src/renderer.tsx
-var METHOD_CLASSES = {
-  get: "text-method-get",
-  post: "text-method-post",
-  put: "text-method-put",
-  patch: "text-method-patch",
-  delete: "text-method-delete",
-  head: "text-method-head",
-  options: "text-method-options"
-};
-var storeEntries = [];
-var storeListeners = /* @__PURE__ */ new Set();
-function methodClass(method) {
-  return METHOD_CLASSES[method.toLowerCase()] ?? "text-text";
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/store.js
+function createExternalStore(initial) {
+  let state = initial;
+  const listeners = /* @__PURE__ */ new Set();
+  return {
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    getSnapshot: () => state,
+    setState: (next) => {
+      state = next;
+      for (const listener of listeners) {
+        listener();
+      }
+    }
+  };
 }
-function formatRelativeTime(ts) {
-  const seconds = Math.floor((Date.now() - ts) / 1e3);
+
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/ui/format.js
+function formatRelativeTime(ts, now = Date.now()) {
+  const seconds = Math.floor((now - ts) / 1e3);
   if (seconds < 5) {
     return "just now";
   }
@@ -86,32 +156,46 @@ function formatRelativeTime(ts) {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
-function mergeEntries(persisted, session) {
-  if (session.length === 0) {
-    return null;
+
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/ui/tokens.js
+var METHOD_CLASSES = {
+  get: "text-method-get",
+  post: "text-method-post",
+  put: "text-method-put",
+  patch: "text-method-patch",
+  delete: "text-method-delete",
+  head: "text-method-head",
+  options: "text-method-options"
+};
+function methodColorClass(method) {
+  return METHOD_CLASSES[method.toLowerCase()] ?? "text-text";
+}
+
+// src/shared.ts
+var PERSISTED_CAP = 100;
+var STORAGE_KEY = "recent";
+
+// node_modules/.pnpm/@harborclient+plugin-api@0.3.2_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/jsx-runtime.js
+var Fragment = Symbol.for("@harborclient/plugin-api.Fragment");
+function build(type, props, key) {
+  const react = requireHostReact();
+  const elementType = type === Fragment ? react.Fragment : type;
+  const { children, ...rest } = props ?? {};
+  if (key !== void 0) {
+    rest.key = key;
   }
-  const seen = new Set(persisted.map((entry) => entry.id));
-  const added = session.filter((entry) => !seen.has(entry.id));
-  if (added.length === 0) {
-    return null;
-  }
-  return [...added, ...persisted].slice(0, PERSISTED_CAP);
+  return react.createElement(elementType, rest, children);
 }
-function setStoreEntries(next) {
-  storeEntries = next;
-  for (const listener of storeListeners) {
-    listener();
-  }
+var jsx = build;
+var jsxs = build;
+
+// src/renderer.tsx
+var entrySequence = 0;
+function nextEntryId() {
+  entrySequence += 1;
+  return Date.now() * 1e3 + entrySequence % 1e3;
 }
-function subscribeStore(listener) {
-  storeListeners.add(listener);
-  return () => {
-    storeListeners.delete(listener);
-  };
-}
-function getStoreSnapshot() {
-  return storeEntries;
-}
+var recentStore = createExternalStore([]);
 function normalizeRecentEntry(entry) {
   return {
     ...entry,
@@ -125,15 +209,12 @@ async function openRecentEntry(entry, hc) {
   const normalized = normalizeRecentEntry(entry);
   if (normalized.savedRequestId != null) {
     try {
-      await hc.commands.execute(
-        "harborclient:loadRequest",
-        normalized.savedRequestId
-      );
+      await hc.host.loadRequest(normalized.savedRequestId);
       return;
     } catch {
     }
   }
-  await hc.commands.execute("harborclient:openRequestDraft", {
+  await hc.host.openRequestDraft({
     name: normalized.name,
     method: normalized.method,
     url: normalized.url,
@@ -143,53 +224,10 @@ async function openRecentEntry(entry, hc) {
     bodyType: normalized.bodyType
   });
 }
-function isMainInactiveError(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes("Plugin main runtime is not active");
-}
-async function invokeMain(pluginId, channel, args = []) {
-  try {
-    return await window.api.invokePluginMain(pluginId, channel, args);
-  } catch (error) {
-    if (!isMainInactiveError(error)) {
-      throw error;
-    }
-    await window.api.activatePluginMain(pluginId);
-    return await window.api.invokePluginMain(pluginId, channel, args);
-  }
-}
-async function syncFromMain(hc) {
-  try {
-    const session = await invokeMain(
-      hc.pluginId,
-      "getRecent",
-      []
-    );
-    if (!Array.isArray(session) || session.length === 0) {
-      return;
-    }
-    const merged = mergeEntries(storeEntries, session);
-    if (!merged) {
-      return;
-    }
-    const normalized = merged.map(normalizeRecentEntry);
-    setStoreEntries(normalized);
-    await hc.storage.set(STORAGE_KEY, normalized);
-  } catch {
-  }
-}
-async function clearRecent(hc) {
-  try {
-    await invokeMain(hc.pluginId, "clear", []);
-  } catch {
-  }
-  setStoreEntries([]);
-  await hc.storage.set(STORAGE_KEY, []);
-}
 function RecentRequestsSection({ hc }) {
   const entries = useSyncExternalStore(
-    subscribeStore,
-    getStoreSnapshot,
+    recentStore.subscribe,
+    recentStore.getSnapshot,
     () => []
   );
   const handleOpenEntry = useCallback(
@@ -199,8 +237,11 @@ function RecentRequestsSection({ hc }) {
     [hc]
   );
   const handleClear = useCallback(() => {
-    void clearRecent(hc);
-  }, [hc]);
+    void (async () => {
+      await list.clear();
+      recentStore.setState([]);
+    })();
+  }, []);
   return /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-0.5", children: [
     entries.length > 0 ? /* @__PURE__ */ jsx("div", { className: "mb-1 flex justify-end px-1", children: /* @__PURE__ */ jsx(
       "button",
@@ -229,7 +270,7 @@ function RecentRequestsSection({ hc }) {
               /* @__PURE__ */ jsx(
                 "span",
                 {
-                  className: `w-12 shrink-0 font-medium uppercase ${methodClass(
+                  className: `w-12 shrink-0 font-medium uppercase ${methodColorClass(
                     entry.method
                   )}`,
                   "aria-hidden": true,
@@ -251,21 +292,45 @@ function RecentRequestsSection({ hc }) {
     ))
   ] });
 }
+var list;
 function activate(hc) {
   installReact(hc.react);
+  list = createCappedList({
+    storage: hc.storage,
+    key: STORAGE_KEY,
+    cap: PERSISTED_CAP,
+    idOf: (entry) => String(entry.id)
+  });
+  void list.load().then((saved) => {
+    if (saved.length > 0) {
+      recentStore.setState(saved.map(normalizeRecentEntry));
+    }
+  });
+  hc.subscriptions.push(
+    hc.http.onAfterSend(async (request, response) => {
+      const entry = normalizeRecentEntry({
+        id: nextEntryId(),
+        method: request.method,
+        url: request.url,
+        status: response.status,
+        statusText: response.statusText,
+        ts: Date.now(),
+        savedRequestId: request.sourceRequestId,
+        name: request.sourceRequestName?.trim() || request.url,
+        headers: { ...request.headers },
+        params: request.params ? [...request.params] : [],
+        body: request.body,
+        bodyType: request.bodyType
+      });
+      const merged = await list.merge([entry]);
+      if (merged) {
+        recentStore.setState(merged.map(normalizeRecentEntry));
+      }
+    })
+  );
   function RecentRequestsSectionHost() {
     return /* @__PURE__ */ jsx(RecentRequestsSection, { hc });
   }
-  void hc.storage.get(STORAGE_KEY).then((saved) => {
-    if (Array.isArray(saved) && saved.length > 0) {
-      setStoreEntries(saved.slice(0, PERSISTED_CAP).map(normalizeRecentEntry));
-    }
-  });
-  void syncFromMain(hc);
-  const timer = setInterval(() => {
-    void syncFromMain(hc);
-  }, POLL_INTERVAL_MS);
-  hc.subscriptions.push({ dispose: () => clearInterval(timer) });
   hc.subscriptions.push(
     hc.ui.registerSidebarSection({
       id: "recent-requests",
@@ -276,7 +341,8 @@ function activate(hc) {
   );
 }
 function deactivate() {
-  setStoreEntries([]);
+  recentStore.setState([]);
+  entrySequence = 0;
 }
 export {
   activate,

@@ -1,17 +1,7 @@
 /**
- * Maximum entries kept in the main-process session buffer.
- */
-export const SESSION_CAP = 200;
-
-/**
  * Maximum entries persisted and shown in the sidebar.
  */
 export const PERSISTED_CAP = 100;
-
-/**
- * Poll interval (ms) for syncing session captures into the renderer store.
- */
-export const POLL_INTERVAL_MS = 2000;
 
 /**
  * SQLite storage key for the persisted recent-request list.
@@ -31,7 +21,7 @@ export interface RecentEntryParam {
  */
 export interface RecentEntry {
   /**
-   * Numeric id unique across main-process reactivations (timestamp + sequence).
+   * Numeric id unique within the renderer session (timestamp + sequence).
    */
   id: number;
 

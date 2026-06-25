@@ -3,16 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm build:main && pnpm build:renderer",
+    "build": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom",
     "verify": "node scripts/verify.mjs",
-    "build:main": "esbuild src/main.ts --bundle --outfile=dist/main.js --format=esm --platform=neutral",
-    "build:renderer": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom",
-    "dev": "pnpm dev:main & pnpm dev:renderer",
-    "dev:main": "esbuild src/main.ts --bundle --outfile=dist/main.js --format=esm --platform=neutral --watch",
-    "dev:renderer": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom --watch"
+    "dev": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom --watch"
   },
   "devDependencies": {
-    "@harborclient/plugin-api": "^0.3.0",
+    "@harborclient/plugin-api": "^0.3.2",
     "@types/react": "^19.1.8",
     "esbuild": "^0.25.0",
     "typescript": "^5.8.3"

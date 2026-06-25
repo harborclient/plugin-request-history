@@ -4,121 +4,31 @@ import {
   useSyncExternalStore,
 } from "@harborclient/plugin-api/react";
 import type { PluginContext } from "@harborclient/plugin-api";
+import { createCappedList } from "@harborclient/plugin-api/storage";
+import { createExternalStore } from "@harborclient/plugin-api/store";
 import {
-  PERSISTED_CAP,
-  POLL_INTERVAL_MS,
-  STORAGE_KEY,
-  type RecentEntry,
-} from "./shared";
+  formatRelativeTime,
+  methodColorClass,
+} from "@harborclient/plugin-api/ui";
+import { PERSISTED_CAP, STORAGE_KEY, type RecentEntry } from "./shared";
 
-/** Tailwind classes for HTTP method labels in sidebar rows. */
-const METHOD_CLASSES: Record<string, string> = {
-  get: "text-method-get",
-  post: "text-method-post",
-  put: "text-method-put",
-  patch: "text-method-patch",
-  delete: "text-method-delete",
-  head: "text-method-head",
-  options: "text-method-options",
-};
-
-/** In-memory recent list shared by the poll loop and sidebar UI. */
-let storeEntries: RecentEntry[] = [];
-
-/** Listeners notified when the store changes. */
-const storeListeners = new Set<() => void>();
+/** Sequence counter disambiguating ids captured within the same millisecond. */
+let entrySequence = 0;
 
 /**
- * Returns Tailwind classes for an HTTP method badge.
+ * Returns a capture id that stays unique within the renderer session.
  *
- * @param method - HTTP method string.
- * @returns Method color class or default text color.
+ * @returns Numeric id combining epoch milliseconds and a per-ms sequence.
  */
-function methodClass(method: string): string {
-  return METHOD_CLASSES[method.toLowerCase()] ?? "text-text";
+function nextEntryId(): number {
+  entrySequence += 1;
+  return Date.now() * 1000 + (entrySequence % 1000);
 }
 
 /**
- * Formats a timestamp as a short relative time string.
- *
- * @param ts - Unix epoch milliseconds.
- * @returns Human-readable relative time (e.g. "2m ago").
+ * Module-level recent list shared by capture handlers and the sidebar UI.
  */
-function formatRelativeTime(ts: number): string {
-  const seconds = Math.floor((Date.now() - ts) / 1000);
-  if (seconds < 5) {
-    return "just now";
-  }
-  if (seconds < 60) {
-    return `${seconds}s ago`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
-/**
- * Merges session captures from main into the persisted list, newest first.
- *
- * @param persisted - Current persisted entries.
- * @param session - Session entries from the main process.
- * @returns Merged list capped to {@link PERSISTED_CAP}, or null if unchanged.
- */
-function mergeEntries(
-  persisted: RecentEntry[],
-  session: RecentEntry[]
-): RecentEntry[] | null {
-  if (session.length === 0) {
-    return null;
-  }
-
-  const seen = new Set(persisted.map((entry) => entry.id));
-  const added = session.filter((entry) => !seen.has(entry.id));
-  if (added.length === 0) {
-    return null;
-  }
-
-  return [...added, ...persisted].slice(0, PERSISTED_CAP);
-}
-
-/**
- * Updates the module store and notifies subscribers.
- *
- * @param next - Replacement entry list.
- */
-function setStoreEntries(next: RecentEntry[]): void {
-  storeEntries = next;
-  for (const listener of storeListeners) {
-    listener();
-  }
-}
-
-/**
- * Subscribes to store changes for useSyncExternalStore.
- *
- * @param listener - Callback invoked when the store updates.
- * @returns Unsubscribe function.
- */
-function subscribeStore(listener: () => void): () => void {
-  storeListeners.add(listener);
-  return () => {
-    storeListeners.delete(listener);
-  };
-}
-
-/**
- * Returns the current store snapshot for useSyncExternalStore.
- */
-function getStoreSnapshot(): RecentEntry[] {
-  return storeEntries;
-}
+const recentStore = createExternalStore<RecentEntry[]>([]);
 
 /**
  * Fills in defaults for entries persisted before capture metadata was expanded.
@@ -150,17 +60,14 @@ async function openRecentEntry(
 
   if (normalized.savedRequestId != null) {
     try {
-      await hc.commands.execute(
-        "harborclient:loadRequest",
-        normalized.savedRequestId
-      );
+      await hc.host.loadRequest(normalized.savedRequestId);
       return;
     } catch {
       // Fall back to a draft tab when the saved request is not loaded in memory.
     }
   }
 
-  await hc.commands.execute("harborclient:openRequestDraft", {
+  await hc.host.openRequestDraft({
     name: normalized.name,
     method: normalized.method,
     url: normalized.url,
@@ -169,85 +76,6 @@ async function openRecentEntry(
     body: normalized.body,
     bodyType: normalized.bodyType,
   });
-}
-
-/**
- * Returns whether an IPC error indicates the plugin main half needs reactivation.
- *
- * @param error - Thrown IPC error.
- */
-function isMainInactiveError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes("Plugin main runtime is not active");
-}
-
-/**
- * Invokes a main-process IPC channel, reactivating the main half when the runner died.
- *
- * @param pluginId - Plugin manifest id for IPC routing.
- * @param channel - Registered IPC channel name.
- * @param args - Arguments passed to the handler.
- * @returns Handler return value.
- */
-async function invokeMain<T>(
-  pluginId: string,
-  channel: string,
-  args: unknown[] = []
-): Promise<T> {
-  try {
-    return (await window.api.invokePluginMain(pluginId, channel, args)) as T;
-  } catch (error) {
-    if (!isMainInactiveError(error)) {
-      throw error;
-    }
-    await window.api.activatePluginMain(pluginId);
-    return (await window.api.invokePluginMain(pluginId, channel, args)) as T;
-  }
-}
-
-/**
- * Polls the main process for new session captures and persists when changed.
- *
- * @param hc - Renderer plugin context.
- */
-async function syncFromMain(hc: PluginContext): Promise<void> {
-  try {
-    const session = await invokeMain<RecentEntry[]>(
-      hc.pluginId,
-      "getRecent",
-      []
-    );
-
-    if (!Array.isArray(session) || session.length === 0) {
-      return;
-    }
-
-    const merged = mergeEntries(storeEntries, session);
-    if (!merged) {
-      return;
-    }
-
-    const normalized = merged.map(normalizeRecentEntry);
-    setStoreEntries(normalized);
-    await hc.storage.set(STORAGE_KEY, normalized);
-  } catch {
-    // Ignore transient IPC failures during polling.
-  }
-}
-
-/**
- * Clears recent requests in main, the local store, and persistent storage.
- *
- * @param hc - Renderer plugin context.
- */
-async function clearRecent(hc: PluginContext): Promise<void> {
-  try {
-    await invokeMain(hc.pluginId, "clear", []);
-  } catch {
-    // Continue clearing local state even if main IPC fails.
-  }
-  setStoreEntries([]);
-  await hc.storage.set(STORAGE_KEY, []);
 }
 
 interface RecentRequestsSectionProps {
@@ -262,8 +90,8 @@ interface RecentRequestsSectionProps {
  */
 function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
   const entries = useSyncExternalStore(
-    subscribeStore,
-    getStoreSnapshot,
+    recentStore.subscribe,
+    recentStore.getSnapshot,
     () => []
   );
 
@@ -278,11 +106,14 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
   );
 
   /**
-   * Clears all recent entries from main, storage, and the UI store.
+   * Clears all recent entries from storage and the UI store.
    */
   const handleClear = useCallback((): void => {
-    void clearRecent(hc);
-  }, [hc]);
+    void (async () => {
+      await list.clear();
+      recentStore.setState([]);
+    })();
+  }, []);
 
   return (
     <div className="flex flex-col gap-0.5">
@@ -318,7 +149,7 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
             onClick={() => handleOpenEntry(entry)}
           >
             <span
-              className={`w-12 shrink-0 font-medium uppercase ${methodClass(
+              className={`w-12 shrink-0 font-medium uppercase ${methodColorClass(
                 entry.method
               )}`}
               aria-hidden
@@ -341,14 +172,53 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
   );
 }
 
+/** Persistent capped list helper bound during activation. */
+let list: ReturnType<typeof createCappedList<RecentEntry>>;
+
 /**
- * Activates the renderer half: loads persisted history, polls main for new captures,
- * and registers the Recent Requests sidebar section.
+ * Activates the renderer half: captures sends, persists recents, and registers the sidebar.
  *
  * @param hc - Renderer plugin context from the HarborClient host.
  */
 export function activate(hc: PluginContext): void {
   installReact(hc.react);
+
+  list = createCappedList({
+    storage: hc.storage,
+    key: STORAGE_KEY,
+    cap: PERSISTED_CAP,
+    idOf: (entry) => String(entry.id),
+  });
+
+  void list.load().then((saved) => {
+    if (saved.length > 0) {
+      recentStore.setState(saved.map(normalizeRecentEntry));
+    }
+  });
+
+  hc.subscriptions.push(
+    hc.http.onAfterSend(async (request, response) => {
+      const entry = normalizeRecentEntry({
+        id: nextEntryId(),
+        method: request.method,
+        url: request.url,
+        status: response.status,
+        statusText: response.statusText,
+        ts: Date.now(),
+        savedRequestId: request.sourceRequestId,
+        name: request.sourceRequestName?.trim() || request.url,
+        headers: { ...request.headers },
+        params: request.params ? [...request.params] : [],
+        body: request.body,
+        bodyType: request.bodyType,
+      });
+
+      const merged = await list.merge([entry]);
+      if (merged) {
+        recentStore.setState(merged.map(normalizeRecentEntry));
+      }
+    })
+  );
 
   /**
    * Sidebar section host that closes over the plugin context.
@@ -356,20 +226,6 @@ export function activate(hc: PluginContext): void {
   function RecentRequestsSectionHost() {
     return <RecentRequestsSection hc={hc} />;
   }
-
-  void hc.storage.get<RecentEntry[]>(STORAGE_KEY).then((saved) => {
-    if (Array.isArray(saved) && saved.length > 0) {
-      setStoreEntries(saved.slice(0, PERSISTED_CAP).map(normalizeRecentEntry));
-    }
-  });
-
-  void syncFromMain(hc);
-
-  const timer = setInterval(() => {
-    void syncFromMain(hc);
-  }, POLL_INTERVAL_MS);
-
-  hc.subscriptions.push({ dispose: () => clearInterval(timer) });
 
   hc.subscriptions.push(
     hc.ui.registerSidebarSection({
@@ -385,5 +241,6 @@ export function activate(hc: PluginContext): void {
  * Resets module state when the plugin deactivates.
  */
 export function deactivate(): void {
-  setStoreEntries([]);
+  recentStore.setState([]);
+  entrySequence = 0;
 }

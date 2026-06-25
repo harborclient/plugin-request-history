@@ -5,11 +5,10 @@
   "company": "HarborClient",
   "description": "README.md",
   "engines": {
-    "harborclient": ">=1.8.0"
+    "harborclient": ">=1.8.4"
   },
   "renderer": "dist/renderer.js",
-  "main": "dist/main.js",
-  "permissions": ["ui", "storage", "http", "ipc"],
+  "permissions": ["ui", "storage", "http"],
   "contributes": {
     "sidebarSections": [
       {
