@@ -6,13 +6,13 @@
     "build": "pnpm build:main && pnpm build:renderer",
     "verify": "node scripts/verify.mjs",
     "build:main": "esbuild src/main.ts --bundle --outfile=dist/main.js --format=esm --platform=neutral",
-    "build:renderer": "esbuild src/renderer.ts --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --external:react --external:react-dom",
+    "build:renderer": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom",
     "dev": "pnpm dev:main & pnpm dev:renderer",
     "dev:main": "esbuild src/main.ts --bundle --outfile=dist/main.js --format=esm --platform=neutral --watch",
-    "dev:renderer": "esbuild src/renderer.ts --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --external:react --external:react-dom --watch"
+    "dev:renderer": "esbuild src/renderer.tsx --bundle --outfile=dist/renderer.js --format=esm --platform=neutral --jsx=automatic --jsx-import-source=@harborclient/plugin-api --external:react --external:react-dom --watch"
   },
   "devDependencies": {
-    "@harborclient/plugin-api": "file:../harborclient/packages/plugin-api",
+    "@harborclient/plugin-api": "^0.2.4",
     "@types/react": "^19.1.8",
     "esbuild": "^0.25.0",
     "typescript": "^5.8.3"

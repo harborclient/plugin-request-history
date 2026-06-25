@@ -4,10 +4,12 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
+    "jsxImportSource": "@harborclient/plugin-api",
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "lib": ["ES2022", "DOM"]
+    "lib": ["ES2022", "DOM"],
+    "types": ["react"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

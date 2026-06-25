@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@harborclient/plugin-api':
-        specifier: file:../harborclient/packages/plugin-api
-        version: file:../harborclient/packages/plugin-api
+        specifier: file:../harborclient-plugin-api
+        version: file:../harborclient-plugin-api(react@19.2.7)
       '@types/react':
         specifier: ^19.1.8
         version: 19.2.17
@@ -179,8 +179,10 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@harborclient/plugin-api@file:../harborclient/packages/plugin-api':
-    resolution: {directory: ../harborclient/packages/plugin-api, type: directory}
+  '@harborclient/plugin-api@file:../harborclient-plugin-api':
+    resolution: {directory: ../harborclient-plugin-api, type: directory}
+    peerDependencies:
+      react: '>=18'
 
   '@types/react@19.2.17':
     resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
@@ -192,6 +194,10 @@ packages:
     resolution: {integrity: sha512-bbPBYYrtZbkt6Os6FiTLCTFxvq4tt3JKall1vRwshA3fdVztsLAatFaZobhkBC8/BrPetoa0oksYoKXoG4ryJg==}
     engines: {node: '>=18'}
     hasBin: true
+
+  react@19.2.7:
+    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
+    engines: {node: '>=0.10.0'}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -278,7 +284,9 @@ snapshots:
   '@esbuild/win32-x64@0.25.12':
     optional: true
 
-  '@harborclient/plugin-api@file:../harborclient/packages/plugin-api': {}
+  '@harborclient/plugin-api@file:../harborclient-plugin-api(react@19.2.7)':
+    dependencies:
+      react: 19.2.7
 
   '@types/react@19.2.17':
     dependencies:
@@ -314,5 +322,7 @@ snapshots:
       '@esbuild/win32-arm64': 0.25.12
       '@esbuild/win32-ia32': 0.25.12
       '@esbuild/win32-x64': 0.25.12
+
+  react@19.2.7: {}
 
   typescript@5.9.3: {}

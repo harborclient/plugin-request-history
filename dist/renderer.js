@@ -1,10 +1,58 @@
+// node_modules/.pnpm/@harborclient+plugin-api@file+..+harborclient-plugin-api_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/reactHost.js
+var hostReact = null;
+function setHostReact(react) {
+  hostReact = react;
+}
+function requireHostReact() {
+  if (hostReact == null) {
+    throw new Error(
+      "Plugin React host is not installed. Call installReact(hc.react) at the start of activate()."
+    );
+  }
+  return hostReact;
+}
+
+// node_modules/.pnpm/@harborclient+plugin-api@file+..+harborclient-plugin-api_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/index.js
+function installReact(react) {
+  setHostReact(react);
+}
+
+// node_modules/.pnpm/@harborclient+plugin-api@file+..+harborclient-plugin-api_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/react.js
+function hook(name) {
+  const react = requireHostReact();
+  const fn = react[name];
+  if (typeof fn !== "function") {
+    throw new Error(`React hook "${String(name)}" is not available on hc.react.`);
+  }
+  return fn;
+}
+function useCallback(callback, deps) {
+  return hook("useCallback")(callback, deps);
+}
+function useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
+  return hook("useSyncExternalStore")(subscribe, getSnapshot, getServerSnapshot);
+}
+
 // src/shared.ts
-var PLUGIN_ID = "com.harborclient.plugins.recent-requests";
 var PERSISTED_CAP = 100;
 var POLL_INTERVAL_MS = 2e3;
 var STORAGE_KEY = "recent";
 
-// src/renderer.ts
+// node_modules/.pnpm/@harborclient+plugin-api@file+..+harborclient-plugin-api_react@19.2.7/node_modules/@harborclient/plugin-api/dist/runtime/jsx-runtime.js
+var Fragment = Symbol.for("@harborclient/plugin-api.Fragment");
+function build(type, props, key) {
+  const react = requireHostReact();
+  const elementType = type === Fragment ? react.Fragment : type;
+  const { children, ...rest } = props ?? {};
+  if (key !== void 0) {
+    rest.key = key;
+  }
+  return react.createElement(elementType, rest, children);
+}
+var jsx = build;
+var jsxs = build;
+
+// src/renderer.tsx
 var METHOD_CLASSES = {
   get: "text-method-get",
   post: "text-method-post",
@@ -99,20 +147,24 @@ function isMainInactiveError(error) {
   const message = error instanceof Error ? error.message : String(error);
   return message.includes("Plugin main runtime is not active");
 }
-async function invokeMain(channel, args = []) {
+async function invokeMain(pluginId, channel, args = []) {
   try {
-    return await window.api.invokePluginMain(PLUGIN_ID, channel, args);
+    return await window.api.invokePluginMain(pluginId, channel, args);
   } catch (error) {
     if (!isMainInactiveError(error)) {
       throw error;
     }
-    await window.api.activatePluginMain(PLUGIN_ID);
-    return await window.api.invokePluginMain(PLUGIN_ID, channel, args);
+    await window.api.activatePluginMain(pluginId);
+    return await window.api.invokePluginMain(pluginId, channel, args);
   }
 }
 async function syncFromMain(hc) {
   try {
-    const session = await invokeMain("getRecent", []);
+    const session = await invokeMain(
+      hc.pluginId,
+      "getRecent",
+      []
+    );
     if (!Array.isArray(session) || session.length === 0) {
       return;
     }
@@ -128,98 +180,82 @@ async function syncFromMain(hc) {
 }
 async function clearRecent(hc) {
   try {
-    await invokeMain("clear", []);
+    await invokeMain(hc.pluginId, "clear", []);
   } catch {
   }
   setStoreEntries([]);
   await hc.storage.set(STORAGE_KEY, []);
 }
-function createRecentRequestsSection(React, hc) {
-  const { createElement: h, useSyncExternalStore, useCallback } = React;
-  function RecentRequestsSection() {
-    const entries = useSyncExternalStore(
-      subscribeStore,
-      getStoreSnapshot,
-      () => []
-    );
-    const handleOpenEntry = useCallback((entry) => {
+function RecentRequestsSection({ hc }) {
+  const entries = useSyncExternalStore(
+    subscribeStore,
+    getStoreSnapshot,
+    () => []
+  );
+  const handleOpenEntry = useCallback(
+    (entry) => {
       void openRecentEntry(entry, hc);
-    }, []);
-    const handleClear = useCallback(() => {
-      void clearRecent(hc);
-    }, []);
-    return h(
+    },
+    [hc]
+  );
+  const handleClear = useCallback(() => {
+    void clearRecent(hc);
+  }, [hc]);
+  return /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-0.5", children: [
+    entries.length > 0 ? /* @__PURE__ */ jsx("div", { className: "mb-1 flex justify-end px-1", children: /* @__PURE__ */ jsx(
+      "button",
+      {
+        type: "button",
+        className: "cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[14px] text-muted hover:bg-selection/60 hover:text-text",
+        "aria-label": "Clear recent requests",
+        onClick: handleClear,
+        children: "Clear"
+      }
+    ) }) : null,
+    entries.length === 0 ? /* @__PURE__ */ jsx("div", { className: "px-2 py-1.5 text-[14px] text-muted", children: "No requests yet" }) : null,
+    entries.map((entry) => /* @__PURE__ */ jsx(
       "div",
-      { className: "flex flex-col gap-0.5" },
-      entries.length > 0 ? h(
-        "div",
-        { className: "mb-1 flex justify-end px-1" },
-        h(
+      {
+        className: "group flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-selection/60",
+        children: /* @__PURE__ */ jsxs(
           "button",
           {
             type: "button",
-            className: "cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[14px] text-muted hover:bg-selection/60 hover:text-text",
-            "aria-label": "Clear recent requests",
-            onClick: handleClear
-          },
-          "Clear"
+            className: "flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text",
+            title: entry.url,
+            "aria-label": `Open ${entry.name}, ${entry.method} ${entry.url}, status ${entry.status}, ${formatRelativeTime(entry.ts)}`,
+            onClick: () => handleOpenEntry(entry),
+            children: [
+              /* @__PURE__ */ jsx(
+                "span",
+                {
+                  className: `w-12 shrink-0 font-medium uppercase ${methodClass(
+                    entry.method
+                  )}`,
+                  "aria-hidden": true,
+                  children: entry.method
+                }
+              ),
+              /* @__PURE__ */ jsx("span", { className: "min-w-0 flex-1 truncate text-[14px] text-text", children: entry.name }),
+              /* @__PURE__ */ jsxs("span", { className: "shrink-0 tabular-nums text-muted", children: [
+                entry.status,
+                " ",
+                entry.statusText
+              ] }),
+              /* @__PURE__ */ jsx("span", { className: "shrink-0 text-muted", children: formatRelativeTime(entry.ts) })
+            ]
+          }
         )
-      ) : null,
-      entries.length === 0 ? h(
-        "div",
-        { className: "px-2 py-1.5 text-[14px] text-muted" },
-        "No requests yet"
-      ) : null,
-      ...entries.map(
-        (entry) => h(
-          "div",
-          {
-            key: entry.id,
-            className: "group flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-selection/60"
-          },
-          h(
-            "button",
-            {
-              type: "button",
-              className: "flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text",
-              title: entry.url,
-              "aria-label": `Open ${entry.name}, ${entry.method} ${entry.url}, status ${entry.status}, ${formatRelativeTime(entry.ts)}`,
-              onClick: () => handleOpenEntry(entry)
-            },
-            h(
-              "span",
-              {
-                className: `w-12 shrink-0 font-medium uppercase ${methodClass(
-                  entry.method
-                )}`,
-                "aria-hidden": true
-              },
-              entry.method
-            ),
-            h(
-              "span",
-              { className: "min-w-0 flex-1 truncate text-[14px] text-text" },
-              entry.name
-            ),
-            h(
-              "span",
-              { className: "shrink-0 tabular-nums text-muted" },
-              `${entry.status} ${entry.statusText}`
-            ),
-            h(
-              "span",
-              { className: "shrink-0 text-muted" },
-              formatRelativeTime(entry.ts)
-            )
-          )
-        )
-      )
-    );
-  }
-  return RecentRequestsSection;
+      },
+      entry.id
+    ))
+  ] });
 }
 function activate(hc) {
-  const RecentRequestsSection = createRecentRequestsSection(hc.react, hc);
+  installReact(hc.react);
+  function RecentRequestsSectionHost() {
+    return /* @__PURE__ */ jsx(RecentRequestsSection, { hc });
+  }
   void hc.storage.get(STORAGE_KEY).then((saved) => {
     if (Array.isArray(saved) && saved.length > 0) {
       setStoreEntries(saved.slice(0, PERSISTED_CAP).map(normalizeRecentEntry));
@@ -235,7 +271,7 @@ function activate(hc) {
       id: "recent-requests",
       title: "Recent Requests",
       order: 10,
-      Component: RecentRequestsSection
+      Component: RecentRequestsSectionHost
     })
   );
 }

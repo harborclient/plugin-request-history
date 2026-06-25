@@ -1,9 +1,4 @@
 /**
- * Manifest id for this plugin; used for IPC and storage namespacing.
- */
-export const PLUGIN_ID = "com.harborclient.plugins.recent-requests";
-
-/**
  * Maximum entries kept in the main-process session buffer.
  */
 export const SESSION_CAP = 200;

@@ -1,7 +1,11 @@
+import { installReact } from "@harborclient/plugin-api";
+import {
+  useCallback,
+  useSyncExternalStore,
+} from "@harborclient/plugin-api/react";
 import type { PluginContext } from "@harborclient/plugin-api";
 import {
   PERSISTED_CAP,
-  PLUGIN_ID,
   POLL_INTERVAL_MS,
   STORAGE_KEY,
   type RecentEntry,
@@ -180,22 +184,24 @@ function isMainInactiveError(error: unknown): boolean {
 /**
  * Invokes a main-process IPC channel, reactivating the main half when the runner died.
  *
+ * @param pluginId - Plugin manifest id for IPC routing.
  * @param channel - Registered IPC channel name.
  * @param args - Arguments passed to the handler.
  * @returns Handler return value.
  */
 async function invokeMain<T>(
+  pluginId: string,
   channel: string,
   args: unknown[] = []
 ): Promise<T> {
   try {
-    return (await window.api.invokePluginMain(PLUGIN_ID, channel, args)) as T;
+    return (await window.api.invokePluginMain(pluginId, channel, args)) as T;
   } catch (error) {
     if (!isMainInactiveError(error)) {
       throw error;
     }
-    await window.api.activatePluginMain(PLUGIN_ID);
-    return (await window.api.invokePluginMain(PLUGIN_ID, channel, args)) as T;
+    await window.api.activatePluginMain(pluginId);
+    return (await window.api.invokePluginMain(pluginId, channel, args)) as T;
   }
 }
 
@@ -206,7 +212,11 @@ async function invokeMain<T>(
  */
 async function syncFromMain(hc: PluginContext): Promise<void> {
   try {
-    const session = await invokeMain<RecentEntry[]>("getRecent", []);
+    const session = await invokeMain<RecentEntry[]>(
+      hc.pluginId,
+      "getRecent",
+      []
+    );
 
     if (!Array.isArray(session) || session.length === 0) {
       return;
@@ -232,7 +242,7 @@ async function syncFromMain(hc: PluginContext): Promise<void> {
  */
 async function clearRecent(hc: PluginContext): Promise<void> {
   try {
-    await invokeMain("clear", []);
+    await invokeMain(hc.pluginId, "clear", []);
   } catch {
     // Continue clearing local state even if main IPC fails.
   }
@@ -240,124 +250,95 @@ async function clearRecent(hc: PluginContext): Promise<void> {
   await hc.storage.set(STORAGE_KEY, []);
 }
 
+interface RecentRequestsSectionProps {
+  /**
+   * Renderer plugin context from the host.
+   */
+  hc: PluginContext;
+}
+
 /**
- * Builds the Recent Requests sidebar section component.
- *
- * @param React - Host React instance from `hc.react`.
- * @param hc - Renderer plugin context.
- * @returns Sidebar section component.
+ * Sidebar section listing recent HTTP requests.
  */
-function createRecentRequestsSection(
-  React: PluginContext["react"],
-  hc: PluginContext
-): React.ComponentType {
-  const { createElement: h, useSyncExternalStore, useCallback } = React;
+function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
+  const entries = useSyncExternalStore(
+    subscribeStore,
+    getStoreSnapshot,
+    () => []
+  );
 
   /**
-   * Sidebar section listing recent HTTP requests.
+   * Opens the recent entry in the request editor.
    */
-  function RecentRequestsSection(): React.ReactElement {
-    const entries = useSyncExternalStore(
-      subscribeStore,
-      getStoreSnapshot,
-      () => []
-    );
-
-    /**
-     * Opens the recent entry in the request editor.
-     *
-     * @param entry - Recent sidebar row to open.
-     */
-    const handleOpenEntry = useCallback((entry: RecentEntry): void => {
+  const handleOpenEntry = useCallback(
+    (entry: RecentEntry): void => {
       void openRecentEntry(entry, hc);
-    }, []);
+    },
+    [hc]
+  );
 
-    /**
-     * Clears all recent entries from main, storage, and the UI store.
-     */
-    const handleClear = useCallback((): void => {
-      void clearRecent(hc);
-    }, []);
+  /**
+   * Clears all recent entries from main, storage, and the UI store.
+   */
+  const handleClear = useCallback((): void => {
+    void clearRecent(hc);
+  }, [hc]);
 
-    return h(
-      "div",
-      { className: "flex flex-col gap-0.5" },
-      entries.length > 0
-        ? h(
-            "div",
-            { className: "mb-1 flex justify-end px-1" },
-            h(
-              "button",
-              {
-                type: "button",
-                className:
-                  "cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[14px] text-muted hover:bg-selection/60 hover:text-text",
-                "aria-label": "Clear recent requests",
-                onClick: handleClear,
-              },
-              "Clear"
-            )
-          )
-        : null,
-      entries.length === 0
-        ? h(
-            "div",
-            { className: "px-2 py-1.5 text-[14px] text-muted" },
-            "No requests yet"
-          )
-        : null,
-      ...entries.map((entry) =>
-        h(
-          "div",
-          {
-            key: entry.id,
-            className:
-              "group flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-selection/60",
-          },
-          h(
-            "button",
-            {
-              type: "button",
-              className:
-                "flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text",
-              title: entry.url,
-              "aria-label": `Open ${entry.name}, ${entry.method} ${
-                entry.url
-              }, status ${entry.status}, ${formatRelativeTime(entry.ts)}`,
-              onClick: () => handleOpenEntry(entry),
-            },
-            h(
-              "span",
-              {
-                className: `w-12 shrink-0 font-medium uppercase ${methodClass(
-                  entry.method
-                )}`,
-                "aria-hidden": true,
-              },
-              entry.method
-            ),
-            h(
-              "span",
-              { className: "min-w-0 flex-1 truncate text-[14px] text-text" },
-              entry.name
-            ),
-            h(
-              "span",
-              { className: "shrink-0 tabular-nums text-muted" },
-              `${entry.status} ${entry.statusText}`
-            ),
-            h(
-              "span",
-              { className: "shrink-0 text-muted" },
-              formatRelativeTime(entry.ts)
-            )
-          )
-        )
-      )
-    );
-  }
-
-  return RecentRequestsSection;
+  return (
+    <div className="flex flex-col gap-0.5">
+      {entries.length > 0 ? (
+        <div className="mb-1 flex justify-end px-1">
+          <button
+            type="button"
+            className="cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[14px] text-muted hover:bg-selection/60 hover:text-text"
+            aria-label="Clear recent requests"
+            onClick={handleClear}
+          >
+            Clear
+          </button>
+        </div>
+      ) : null}
+      {entries.length === 0 ? (
+        <div className="px-2 py-1.5 text-[14px] text-muted">
+          No requests yet
+        </div>
+      ) : null}
+      {entries.map((entry) => (
+        <div
+          key={entry.id}
+          className="group flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-selection/60"
+        >
+          <button
+            type="button"
+            className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text"
+            title={entry.url}
+            aria-label={`Open ${entry.name}, ${entry.method} ${
+              entry.url
+            }, status ${entry.status}, ${formatRelativeTime(entry.ts)}`}
+            onClick={() => handleOpenEntry(entry)}
+          >
+            <span
+              className={`w-12 shrink-0 font-medium uppercase ${methodClass(
+                entry.method
+              )}`}
+              aria-hidden
+            >
+              {entry.method}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[14px] text-text">
+              {entry.name}
+            </span>
+            <span className="shrink-0 tabular-nums text-muted">
+              {entry.status} {entry.statusText}
+            </span>
+            <span className="shrink-0 text-muted">
+              {formatRelativeTime(entry.ts)}
+            </span>
+          </button>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /**
@@ -367,7 +348,14 @@ function createRecentRequestsSection(
  * @param hc - Renderer plugin context from the HarborClient host.
  */
 export function activate(hc: PluginContext): void {
-  const RecentRequestsSection = createRecentRequestsSection(hc.react, hc);
+  installReact(hc.react);
+
+  /**
+   * Sidebar section host that closes over the plugin context.
+   */
+  function RecentRequestsSectionHost() {
+    return <RecentRequestsSection hc={hc} />;
+  }
 
   void hc.storage.get<RecentEntry[]>(STORAGE_KEY).then((saved) => {
     if (Array.isArray(saved) && saved.length > 0) {
@@ -388,7 +376,7 @@ export function activate(hc: PluginContext): void {
       id: "recent-requests",
       title: "Recent Requests",
       order: 10,
-      Component: RecentRequestsSection,
+      Component: RecentRequestsSectionHost,
     })
   );
 }
