@@ -1,601 +1,616 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html,
-    body {
-      width: 1280px;
-      height: 720px;
-      min-height: 720px;
-      max-height: 720px;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #0c1220;
-      background-image:
-        radial-gradient(ellipse 70% 60% at 88% 10%, rgba(45, 212, 191, 0.2) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 8% 85%, rgba(99, 102, 241, 0.16) 0%, transparent 50%),
-        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(56, 189, 248, 0.06) 0%, transparent 60%),
-        linear-gradient(160deg, #0c1220 0%, #111827 45%, #0a0f1a 100%);
-      background-repeat: no-repeat;
-      background-size: 1280px 720px;
-    }
-
-    .canvas {
-      position: fixed;
-      inset: 0;
-      width: 1280px;
-      height: 720px;
-      background: transparent;
-    }
-
-    .grid {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 32px 32px;
-      pointer-events: none;
-    }
-
-    .header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 2;
-      padding: 32px 48px 20px;
-    }
-
-    .mockup-area {
-      position: absolute;
-      top: 172px;
-      left: 0;
-      width: 1280px;
-      height: 548px;
-    }
-
-    .badge-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .plugin-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: rgba(45, 212, 191, 0.12);
-      border: 1px solid rgba(45, 212, 191, 0.35);
-      color: #5eead4;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .plugin-badge .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #2dd4bf;
-      box-shadow: 0 0 8px #2dd4bf;
-    }
-
-    .pill {
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #94a3b8;
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    h1 {
-      font-size: 38px;
-      font-weight: 700;
-      line-height: 1.1;
-      color: #f8fafc;
-      letter-spacing: -0.02em;
-    }
-
-    h1 span {
-      background: linear-gradient(90deg, #2dd4bf, #38bdf8, #818cf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .subtitle {
-      margin-top: 10px;
-      font-size: 16px;
-      color: #64748b;
-      line-height: 1.45;
-      max-width: 640px;
-    }
-
-    .mockup-glow {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 4px;
-      bottom: 0;
-      border-radius: 16px 16px 0 0;
-      background: linear-gradient(135deg, rgba(45, 212, 191, 0.2), rgba(56, 189, 248, 0.12), rgba(129, 140, 248, 0.08));
-      filter: blur(24px);
-      opacity: 0.85;
-    }
-
-    .mockup {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 1280px;
-      height: 548px;
-      border-radius: 12px 12px 0 0;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-bottom: none;
-      background: #1a1f2e;
-      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .mockup-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: #141824;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      flex-shrink: 0;
-    }
-
-    .traffic {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-    }
-
-    .traffic.r {
-      background: #ff5f57;
-    }
-
-    .traffic.y {
-      background: #febc2e;
-    }
-
-    .traffic.g {
-      background: #28c840;
-    }
-
-    .toolbar-title {
-      margin-left: 10px;
-      font-size: 12px;
-      color: #64748b;
-      font-weight: 500;
-    }
-
-    .app-body {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-    }
-
-    .sidebar {
-      width: 320px;
-      flex-shrink: 0;
-      background: #141824;
-      border-right: 1px solid rgba(255, 255, 255, 0.06);
-      display: flex;
-      flex-direction: column;
-      padding: 12px 0;
-    }
-
-    .sidebar-section {
-      padding: 0 8px;
-      margin-bottom: 8px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #64748b;
-    }
-
-    .section-header.muted {
-      opacity: 0.55;
-    }
-
-    .section-header.active {
-      color: #5eead4;
-      background: rgba(45, 212, 191, 0.08);
-      border-radius: 6px;
-    }
-
-    .chevron {
-      font-size: 9px;
-      color: #64748b;
-      width: 10px;
-    }
-
-    .recent-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 8px 6px;
-    }
-
-    .recent-header-row .section-header {
-      padding: 6px 8px;
-      margin: 0;
-    }
-
-    .clear-btn {
-      font-size: 11px;
-      color: #64748b;
-      padding: 4px 8px;
-    }
-
-    .recent-list {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding: 0 4px;
-    }
-
-    .recent-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-    }
-
-    .recent-row:hover,
-    .recent-row.selected {
-      background: rgba(45, 212, 191, 0.08);
-    }
-
-    .recent-row.selected {
-      border: 1px solid rgba(45, 212, 191, 0.2);
-    }
-
-    .method {
-      width: 36px;
-      flex-shrink: 0;
-      font-weight: 700;
-      font-family: ui-monospace, monospace;
-      font-size: 10px;
-    }
-
-    .method.get {
-      color: #34d399;
-    }
-
-    .method.post {
-      color: #38bdf8;
-    }
-
-    .row-name {
-      flex: 1;
-      min-width: 0;
-      color: #cbd5e1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .row-status,
-    .row-time {
-      flex-shrink: 0;
-      color: #64748b;
-      font-size: 10px;
-    }
-
-    .editor {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      background: #161b28;
-    }
-
-    .editor-tabs {
-      display: flex;
-      gap: 2px;
-      padding: 8px 12px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      flex-shrink: 0;
-    }
-
-    .etab {
-      padding: 7px 14px;
-      font-size: 11px;
-      color: #64748b;
-      border-radius: 6px 6px 0 0;
-    }
-
-    .etab.active {
-      color: #e2e8f0;
-      background: #1a1f2e;
-    }
-
-    .request-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      flex-shrink: 0;
-    }
-
-    .method-badge {
-      padding: 4px 10px;
-      border-radius: 5px;
-      background: rgba(52, 211, 153, 0.15);
-      color: #34d399;
-      font-size: 12px;
-      font-weight: 700;
-      font-family: ui-monospace, monospace;
-    }
-
-    .url-bar {
-      flex: 1;
-      font-size: 12px;
-      color: #94a3b8;
-      font-family: ui-monospace, monospace;
-    }
-
-    .editor-content {
-      flex: 1;
-      min-height: 0;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .filler-line {
-      height: 10px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .filler-line.w80 {
-      width: 80%;
-    }
-
-    .filler-line.w60 {
-      width: 60%;
-    }
-
-    .filler-line.w40 {
-      width: 40%;
-    }
-
-    .response-preview {
-      margin-top: auto;
-      padding: 12px 14px;
-      border-radius: 8px;
-      background: #0f131c;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .response-meta {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 8px;
-      font-size: 11px;
-    }
-
-    .status-ok {
-      color: #34d399;
-      font-weight: 600;
-    }
-
-    .meta-muted {
-      color: #64748b;
-    }
-
-    .response-json {
-      font-family: ui-monospace, monospace;
-      font-size: 11px;
-      line-height: 1.5;
-      color: #94a3b8;
-    }
-
-    .response-json .key {
-      color: #38bdf8;
-    }
-
-    .response-json .val {
-      color: #34d399;
-    }
-
-    .toast {
-      position: absolute;
-      top: 36px;
-      right: 56px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 9px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(45, 212, 191, 0.4);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 20px rgba(45, 212, 191, 0.12);
-      z-index: 4;
-    }
-
-    .toast-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: rgba(45, 212, 191, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #2dd4bf;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .toast-text {
-      font-size: 12px;
-      color: #e2e8f0;
-      font-weight: 500;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="canvas">
-    <div class="grid"></div>
-
-    <div class="header">
-      <div class="badge-row">
-        <div class="plugin-badge"><span class="dot"></span> HarborClient Plugin</div>
-        <span class="pill">Auto capture</span>
-        <span class="pill">Click to reopen</span>
-        <span class="pill">Persistent</span>
-      </div>
-      <h1><span>Recent requests</span>, one click away</h1>
-      <p class="subtitle">Captures method, URL, status, and timestamp for every send. Click a row to reopen in the
-        editor — persists up to 100 entries across restarts.</p>
-    </div>
-
-    <div class="mockup-area">
-      <div class="mockup-glow"></div>
-      <div class="mockup">
-        <div class="mockup-toolbar">
-          <span class="traffic r"></span>
-          <span class="traffic y"></span>
-          <span class="traffic g"></span>
-          <span class="toolbar-title">HarborClient</span>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 1280px;
+        height: 720px;
+        min-height: 720px;
+        max-height: 720px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #0c1220;
+        background-image:
+          radial-gradient(ellipse 70% 60% at 88% 10%, rgba(45, 212, 191, 0.2) 0%, transparent 55%),
+          radial-gradient(ellipse 60% 50% at 8% 85%, rgba(99, 102, 241, 0.16) 0%, transparent 50%),
+          radial-gradient(ellipse 40% 30% at 50% 50%, rgba(56, 189, 248, 0.06) 0%, transparent 60%),
+          linear-gradient(160deg, #0c1220 0%, #111827 45%, #0a0f1a 100%);
+        background-repeat: no-repeat;
+        background-size: 1280px 720px;
+      }
+
+      .canvas {
+        position: fixed;
+        inset: 0;
+        width: 1280px;
+        height: 720px;
+        background: transparent;
+      }
+
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 32px 32px;
+        pointer-events: none;
+      }
+
+      .header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 2;
+        padding: 32px 48px 20px;
+      }
+
+      .mockup-area {
+        position: absolute;
+        top: 172px;
+        left: 0;
+        width: 1280px;
+        height: 548px;
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .plugin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: rgba(45, 212, 191, 0.12);
+        border: 1px solid rgba(45, 212, 191, 0.35);
+        color: #5eead4;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .plugin-badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #2dd4bf;
+        box-shadow: 0 0 8px #2dd4bf;
+      }
+
+      .pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #94a3b8;
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      h1 {
+        font-size: 38px;
+        font-weight: 700;
+        line-height: 1.1;
+        color: #f8fafc;
+        letter-spacing: -0.02em;
+      }
+
+      h1 span {
+        background: linear-gradient(90deg, #2dd4bf, #38bdf8, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .subtitle {
+        margin-top: 10px;
+        font-size: 16px;
+        color: #64748b;
+        line-height: 1.45;
+        max-width: 640px;
+      }
+
+      .mockup-glow {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 4px;
+        bottom: 0;
+        border-radius: 16px 16px 0 0;
+        background: linear-gradient(
+          135deg,
+          rgba(45, 212, 191, 0.2),
+          rgba(56, 189, 248, 0.12),
+          rgba(129, 140, 248, 0.08)
+        );
+        filter: blur(24px);
+        opacity: 0.85;
+      }
+
+      .mockup {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1280px;
+        height: 548px;
+        border-radius: 12px 12px 0 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: none;
+        background: #1a1f2e;
+        box-shadow:
+          0 -8px 32px rgba(0, 0, 0, 0.35),
+          0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mockup-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #141824;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+      }
+
+      .traffic {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+      }
+
+      .traffic.r {
+        background: #ff5f57;
+      }
+
+      .traffic.y {
+        background: #febc2e;
+      }
+
+      .traffic.g {
+        background: #28c840;
+      }
+
+      .toolbar-title {
+        margin-left: 10px;
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      .app-body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+      }
+
+      .sidebar {
+        width: 320px;
+        flex-shrink: 0;
+        background: #141824;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        flex-direction: column;
+        padding: 12px 0;
+      }
+
+      .sidebar-section {
+        padding: 0 8px;
+        margin-bottom: 8px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #64748b;
+      }
+
+      .section-header.muted {
+        opacity: 0.55;
+      }
+
+      .section-header.active {
+        color: #5eead4;
+        background: rgba(45, 212, 191, 0.08);
+        border-radius: 6px;
+      }
+
+      .chevron {
+        font-size: 9px;
+        color: #64748b;
+        width: 10px;
+      }
+
+      .recent-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px 6px;
+      }
+
+      .recent-header-row .section-header {
+        padding: 6px 8px;
+        margin: 0;
+      }
+
+      .clear-btn {
+        font-size: 11px;
+        color: #64748b;
+        padding: 4px 8px;
+      }
+
+      .recent-list {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 0 4px;
+      }
+
+      .recent-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+      }
+
+      .recent-row:hover,
+      .recent-row.selected {
+        background: rgba(45, 212, 191, 0.08);
+      }
+
+      .recent-row.selected {
+        border: 1px solid rgba(45, 212, 191, 0.2);
+      }
+
+      .method {
+        width: 36px;
+        flex-shrink: 0;
+        font-weight: 700;
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+      }
+
+      .method.get {
+        color: #34d399;
+      }
+
+      .method.post {
+        color: #38bdf8;
+      }
+
+      .row-name {
+        flex: 1;
+        min-width: 0;
+        color: #cbd5e1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .row-status,
+      .row-time {
+        flex-shrink: 0;
+        color: #64748b;
+        font-size: 10px;
+      }
+
+      .editor {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        background: #161b28;
+      }
+
+      .editor-tabs {
+        display: flex;
+        gap: 2px;
+        padding: 8px 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+      }
+
+      .etab {
+        padding: 7px 14px;
+        font-size: 11px;
+        color: #64748b;
+        border-radius: 6px 6px 0 0;
+      }
+
+      .etab.active {
+        color: #e2e8f0;
+        background: #1a1f2e;
+      }
+
+      .request-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+      }
+
+      .method-badge {
+        padding: 4px 10px;
+        border-radius: 5px;
+        background: rgba(52, 211, 153, 0.15);
+        color: #34d399;
+        font-size: 12px;
+        font-weight: 700;
+        font-family: ui-monospace, monospace;
+      }
+
+      .url-bar {
+        flex: 1;
+        font-size: 12px;
+        color: #94a3b8;
+        font-family: ui-monospace, monospace;
+      }
+
+      .editor-content {
+        flex: 1;
+        min-height: 0;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .filler-line {
+        height: 10px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .filler-line.w80 {
+        width: 80%;
+      }
+
+      .filler-line.w60 {
+        width: 60%;
+      }
+
+      .filler-line.w40 {
+        width: 40%;
+      }
+
+      .response-preview {
+        margin-top: auto;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #0f131c;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .response-meta {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 8px;
+        font-size: 11px;
+      }
+
+      .status-ok {
+        color: #34d399;
+        font-weight: 600;
+      }
+
+      .meta-muted {
+        color: #64748b;
+      }
+
+      .response-json {
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #94a3b8;
+      }
+
+      .response-json .key {
+        color: #38bdf8;
+      }
+
+      .response-json .val {
+        color: #34d399;
+      }
+
+      .toast {
+        position: absolute;
+        top: 36px;
+        right: 56px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 9px;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        box-shadow:
+          0 8px 24px rgba(0, 0, 0, 0.45),
+          0 0 20px rgba(45, 212, 191, 0.12);
+        z-index: 4;
+      }
+
+      .toast-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(45, 212, 191, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2dd4bf;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .toast-text {
+        font-size: 12px;
+        color: #e2e8f0;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="canvas">
+      <div class="grid"></div>
+
+      <div class="header">
+        <div class="badge-row">
+          <div class="plugin-badge"><span class="dot"></span> HarborClient Plugin</div>
+          <span class="pill">Auto capture</span>
+          <span class="pill">Click to reopen</span>
+          <span class="pill">Persistent</span>
         </div>
-        <div class="app-body">
-          <aside class="sidebar">
-            <div class="sidebar-section">
-              <div class="section-header muted"><span class="chevron">▸</span> Collections</div>
-            </div>
-            <div class="sidebar-section">
-              <div class="section-header muted"><span class="chevron">▸</span> Environments</div>
-            </div>
-            <div class="sidebar-section" style="flex:1;display:flex;flex-direction:column;min-height:0;">
-              <div class="recent-header-row">
-                <div class="section-header active"><span class="chevron">▾</span> Recent Requests</div>
-                <span class="clear-btn">Clear</span>
+        <h1><span>Recent requests</span>, one click away</h1>
+        <p class="subtitle">
+          Captures method, URL, status, and timestamp for every send. Click a row to reopen in the
+          editor — persists up to 100 entries across restarts.
+        </p>
+      </div>
+
+      <div class="mockup-area">
+        <div class="mockup-glow"></div>
+        <div class="mockup">
+          <div class="mockup-toolbar">
+            <span class="traffic r"></span>
+            <span class="traffic y"></span>
+            <span class="traffic g"></span>
+            <span class="toolbar-title">HarborClient</span>
+          </div>
+          <div class="app-body">
+            <aside class="sidebar">
+              <div class="sidebar-section">
+                <div class="section-header muted"><span class="chevron">▸</span> Collections</div>
               </div>
-              <div class="recent-list">
-                <div class="recent-row">
-                  <span class="method get">GET</span>
-                  <span class="row-name">google.com</span>
-                  <span class="row-status">200</span>
-                  <span class="row-time">just now</span>
+              <div class="sidebar-section">
+                <div class="section-header muted"><span class="chevron">▸</span> Environments</div>
+              </div>
+              <div
+                class="sidebar-section"
+                style="flex: 1; display: flex; flex-direction: column; min-height: 0"
+              >
+                <div class="recent-header-row">
+                  <div class="section-header active">
+                    <span class="chevron">▾</span> Recent Requests
+                  </div>
+                  <span class="clear-btn">Clear</span>
                 </div>
-                <div class="recent-row">
-                  <span class="method post">POST</span>
-                  <span class="row-name">api.example.com/v1/oauth/token</span>
-                  <span class="row-status">200</span>
-                  <span class="row-time">4m ago</span>
-                </div>
-                <div class="recent-row selected">
-                  <span class="method get">GET</span>
-                  <span class="row-name">api.example.com/v1/users</span>
-                  <span class="row-status">200</span>
-                  <span class="row-time">12m ago</span>
-                </div>
-                <div class="recent-row">
-                  <span class="method get">GET</span>
-                  <span class="row-name">api.example.com/v1/products</span>
-                  <span class="row-status">200</span>
-                  <span class="row-time">15m ago</span>
-                </div>
-                <div class="recent-row">
-                  <span class="method post">POST</span>
-                  <span class="row-name">api.example.com/v1/checkout</span>
-                  <span class="row-status">200</span>
-                  <span class="row-time">18m ago</span>
-                </div>
-                <div class="recent-row">
-                  <span class="method get">GET</span>
-                  <span class="row-name">api.example.com/v1/orders</span>
-                  <span class="row-status">200</span>
-                  <span class="row-time">22m ago</span>
-                </div>
-                <div class="recent-row">
-                  <span class="method get">GET</span>
-                  <span class="row-name">httpbin.org/get</span>
-                  <span class="row-status">200</span>
-                  <span class="row-time">30m ago</span>
+                <div class="recent-list">
+                  <div class="recent-row">
+                    <span class="method get">GET</span>
+                    <span class="row-name">google.com</span>
+                    <span class="row-status">200</span>
+                    <span class="row-time">just now</span>
+                  </div>
+                  <div class="recent-row">
+                    <span class="method post">POST</span>
+                    <span class="row-name">api.example.com/v1/oauth/token</span>
+                    <span class="row-status">200</span>
+                    <span class="row-time">4m ago</span>
+                  </div>
+                  <div class="recent-row selected">
+                    <span class="method get">GET</span>
+                    <span class="row-name">api.example.com/v1/users</span>
+                    <span class="row-status">200</span>
+                    <span class="row-time">12m ago</span>
+                  </div>
+                  <div class="recent-row">
+                    <span class="method get">GET</span>
+                    <span class="row-name">api.example.com/v1/products</span>
+                    <span class="row-status">200</span>
+                    <span class="row-time">15m ago</span>
+                  </div>
+                  <div class="recent-row">
+                    <span class="method post">POST</span>
+                    <span class="row-name">api.example.com/v1/checkout</span>
+                    <span class="row-status">200</span>
+                    <span class="row-time">18m ago</span>
+                  </div>
+                  <div class="recent-row">
+                    <span class="method get">GET</span>
+                    <span class="row-name">api.example.com/v1/orders</span>
+                    <span class="row-status">200</span>
+                    <span class="row-time">22m ago</span>
+                  </div>
+                  <div class="recent-row">
+                    <span class="method get">GET</span>
+                    <span class="row-name">httpbin.org/get</span>
+                    <span class="row-status">200</span>
+                    <span class="row-time">30m ago</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </aside>
-          <main class="editor">
-            <div class="editor-tabs">
-              <div class="etab active">Get Users</div>
-              <div class="etab">Params</div>
-              <div class="etab">Headers</div>
-            </div>
-            <div class="request-bar">
-              <span class="method-badge">GET</span>
-              <span class="url-bar">https://api.example.com/v1/users</span>
-            </div>
-            <div class="editor-content">
-              <div class="filler-line w80"></div>
-              <div class="filler-line w60"></div>
-              <div class="filler-line w40"></div>
-              <div class="response-preview">
-                <div class="response-meta">
-                  <span class="status-ok">200 OK</span>
-                  <span class="meta-muted">142 ms</span>
-                  <span class="meta-muted">2.4 KB</span>
-                </div>
-                <div class="response-json">[
-                  { <span class="key">"id"</span>: <span class="val">1</span>, <span class="key">"name"</span>: <span
-                    class="val">"Alice"</span> },
-                  { <span class="key">"id"</span>: <span class="val">2</span>, <span class="key">"name"</span>: <span
-                    class="val">"Bob"</span> }
-                  ]</div>
+            </aside>
+            <main class="editor">
+              <div class="editor-tabs">
+                <div class="etab active">Get Users</div>
+                <div class="etab">Params</div>
+                <div class="etab">Headers</div>
               </div>
-            </div>
-          </main>
+              <div class="request-bar">
+                <span class="method-badge">GET</span>
+                <span class="url-bar">https://api.example.com/v1/users</span>
+              </div>
+              <div class="editor-content">
+                <div class="filler-line w80"></div>
+                <div class="filler-line w60"></div>
+                <div class="filler-line w40"></div>
+                <div class="response-preview">
+                  <div class="response-meta">
+                    <span class="status-ok">200 OK</span>
+                    <span class="meta-muted">142 ms</span>
+                    <span class="meta-muted">2.4 KB</span>
+                  </div>
+                  <div class="response-json">
+                    [ { <span class="key">"id"</span>: <span class="val">1</span>,
+                    <span class="key">"name"</span>: <span class="val">"Alice"</span> }, {
+                    <span class="key">"id"</span>: <span class="val">2</span>,
+                    <span class="key">"name"</span>: <span class="val">"Bob"</span> } ]
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="toast">
-      <div class="toast-icon">✓</div>
-      <span class="toast-text">Request opened</span>
+      <div class="toast">
+        <div class="toast-icon">✓</div>
+        <span class="toast-text">Request opened</span>
+      </div>
     </div>
-  </div>
-</body>
-
+  </body>
 </html>

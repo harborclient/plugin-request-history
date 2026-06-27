@@ -1,16 +1,11 @@
-import { installReact } from "@harborclient/sdk";
-import {
-  useCallback,
-  useSyncExternalStore,
-} from "@harborclient/sdk/react";
-import type { PluginContext } from "@harborclient/sdk";
-import { createCappedList } from "@harborclient/sdk/storage";
-import { createExternalStore } from "@harborclient/sdk/store";
-import {
-  formatRelativeTime,
-  methodColorClass,
-} from "@harborclient/sdk/ui";
-import { PERSISTED_CAP, STORAGE_KEY, type RecentEntry } from "./shared";
+import { installReact } from '@harborclient/sdk';
+import { Button, EmptyState } from '@harborclient/sdk/components';
+import { useCallback, useSyncExternalStore } from '@harborclient/sdk/react';
+import type { BodyType, PluginContext } from '@harborclient/sdk';
+import { createCappedList } from '@harborclient/sdk/storage';
+import { createExternalStore } from '@harborclient/sdk/store';
+import { formatRelativeTime, methodColorClass } from '@harborclient/sdk/ui';
+import { PERSISTED_CAP, STORAGE_KEY, type RecentEntry } from './shared';
 
 /** Sequence counter disambiguating ids captured within the same millisecond. */
 let entrySequence = 0;
@@ -42,7 +37,7 @@ function normalizeRecentEntry(entry: RecentEntry): RecentEntry {
     name: entry.name?.trim() || entry.url,
     headers: entry.headers ?? {},
     params: entry.params ?? [],
-    body: entry.body ?? "",
+    body: entry.body ?? ''
   };
 }
 
@@ -52,10 +47,7 @@ function normalizeRecentEntry(entry: RecentEntry): RecentEntry {
  * @param entry - Recent sidebar row to open.
  * @param hc - Renderer plugin context.
  */
-async function openRecentEntry(
-  entry: RecentEntry,
-  hc: PluginContext
-): Promise<void> {
+async function openRecentEntry(entry: RecentEntry, hc: PluginContext): Promise<void> {
   const normalized = normalizeRecentEntry(entry);
 
   if (normalized.savedRequestId != null) {
@@ -74,7 +66,7 @@ async function openRecentEntry(
     headers: normalized.headers,
     params: normalized.params,
     body: normalized.body,
-    bodyType: normalized.bodyType,
+    bodyType: normalized.bodyType
   });
 }
 
@@ -89,11 +81,7 @@ interface RecentRequestsSectionProps {
  * Sidebar section listing recent HTTP requests.
  */
 function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
-  const entries = useSyncExternalStore(
-    recentStore.subscribe,
-    recentStore.getSnapshot,
-    () => []
-  );
+  const entries = useSyncExternalStore(recentStore.subscribe, recentStore.getSnapshot, () => []);
 
   /**
    * Opens the recent entry in the request editor.
@@ -119,52 +107,45 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
     <div className="flex flex-col gap-0.5">
       {entries.length > 0 ? (
         <div className="mb-1 flex justify-end px-1">
-          <button
-            type="button"
-            className="cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[14px] text-muted hover:bg-selection/60 hover:text-text"
+          <Button
+            variant="toolbar"
+            className="text-[14px] text-muted hover:text-text"
             aria-label="Clear recent requests"
             onClick={handleClear}
           >
             Clear
-          </button>
+          </Button>
         </div>
       ) : null}
       {entries.length === 0 ? (
-        <div className="px-2 py-1.5 text-[14px] text-muted">
+        <EmptyState variant="inline" className="px-2 py-1.5">
           No requests yet
-        </div>
+        </EmptyState>
       ) : null}
       {entries.map((entry) => (
         <div
           key={entry.id}
           className="group flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-selection/60"
         >
-          <button
-            type="button"
-            className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text"
+          <Button
+            variant="toolbar"
+            className="flex min-w-0 flex-1 items-center gap-1.5 py-0.5 text-left text-[14px] text-text hover:bg-transparent"
             title={entry.url}
-            aria-label={`Open ${entry.name}, ${entry.method} ${entry.url
-              }, status ${entry.status}, ${formatRelativeTime(entry.ts)}`}
+            aria-label={`Open ${entry.name}, ${entry.method} ${entry.url}, status ${entry.status}, ${formatRelativeTime(entry.ts)}`}
             onClick={() => handleOpenEntry(entry)}
           >
             <span
-              className={`w-12 shrink-0 font-medium uppercase ${methodColorClass(
-                entry.method
-              )}`}
+              className={`w-12 shrink-0 font-medium uppercase ${methodColorClass(entry.method)}`}
               aria-hidden
             >
               {entry.method}
             </span>
-            <span className="min-w-0 flex-1 truncate text-[14px] text-text">
-              {entry.name}
-            </span>
+            <span className="min-w-0 flex-1 truncate text-[14px] text-text">{entry.name}</span>
             <span className="shrink-0 tabular-nums text-muted">
               {entry.status} {entry.statusText}
             </span>
-            <span className="shrink-0 text-muted">
-              {formatRelativeTime(entry.ts)}
-            </span>
-          </button>
+            <span className="shrink-0 text-muted">{formatRelativeTime(entry.ts)}</span>
+          </Button>
         </div>
       ))}
     </div>
@@ -186,7 +167,7 @@ export function activate(hc: PluginContext): void {
     storage: hc.storage,
     key: STORAGE_KEY,
     cap: PERSISTED_CAP,
-    idOf: (entry) => String(entry.id),
+    idOf: (entry) => String(entry.id)
   });
 
   void list.load().then((saved) => {
@@ -209,7 +190,7 @@ export function activate(hc: PluginContext): void {
         headers: { ...request.headers },
         params: request.params ? [...request.params] : [],
         body: request.body,
-        bodyType: request.bodyType,
+        bodyType: request.bodyType as BodyType | undefined
       });
 
       const merged = await list.merge([entry]);
@@ -228,10 +209,10 @@ export function activate(hc: PluginContext): void {
 
   hc.subscriptions.push(
     hc.ui.registerSidebarSection({
-      id: "recent-requests",
-      title: "Recent Requests",
+      id: 'recent-requests',
+      title: 'Recent Requests',
       order: 10,
-      Component: RecentRequestsSectionHost,
+      Component: RecentRequestsSectionHost
     })
   );
 }

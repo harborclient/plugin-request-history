@@ -6,6 +6,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "@harborclient/sdk",
     "strict": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
     "noEmit": true,
     "lib": ["ES2022", "DOM"],

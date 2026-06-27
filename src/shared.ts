@@ -1,3 +1,5 @@
+import type { BodyType } from '@harborclient/sdk';
+
 /**
  * Maximum entries persisted and shown in the sidebar.
  */
@@ -6,7 +8,7 @@ export const PERSISTED_CAP = 100;
 /**
  * SQLite storage key for the persisted recent-request list.
  */
-export const STORAGE_KEY = "recent";
+export const STORAGE_KEY = 'recent';
 
 /**
  * Serializable query parameter captured from a sent request.
@@ -78,5 +80,5 @@ export interface RecentEntry {
   /**
    * Request body content type captured at send time.
    */
-  bodyType?: string;
+  bodyType?: BodyType;
 }

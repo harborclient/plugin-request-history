@@ -1,4 +1,4 @@
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/reactHost.js
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/reactHost.js
 var hostReact = null;
 function setHostReact(react) {
   hostReact = react;
@@ -12,12 +12,41 @@ function requireHostReact() {
   return hostReact;
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/index.js
 function installReact(react) {
   setHostReact(react);
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/react.js
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/jsx-runtime.js
+var Fragment = Symbol.for("@harborclient/sdk.Fragment");
+function build(type, props, key) {
+  const react = requireHostReact();
+  const elementType = type === Fragment ? react.Fragment : type;
+  const { children, ...rest } = props ?? {};
+  if (key !== void 0) {
+    rest.key = key;
+  }
+  return react.createElement(elementType, rest, children);
+}
+var jsx = build;
+var jsxs = build;
+
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/components/Button/index.js
+var VARIANT_CLASSES = {
+  primary: "cursor-pointer rounded-md border border-transparent bg-accent px-3 py-1 text-[15px] font-medium text-white shadow-sm hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  secondary: "cursor-pointer rounded-md border border-separator bg-control px-3 py-1 text-[15px] text-text shadow-sm hover:bg-selection disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  primaryDanger: "cursor-pointer rounded-md border border-transparent bg-danger px-3 py-1 text-[15px] font-medium text-white shadow-sm hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  secondaryDanger: "cursor-pointer rounded-md border border-separator bg-control px-3 py-1 text-[15px] text-danger shadow-sm hover:bg-danger/15 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  toolbar: "cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[15px] hover:bg-selection app-no-drag",
+  icon: "inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:bg-selection hover:text-text app-no-drag",
+  iconDanger: "inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:bg-danger/15 hover:text-danger app-no-drag"
+};
+function Button({ variant = "primary", className, type = "button", ...props }) {
+  const classes = className ? `${VARIANT_CLASSES[variant]} ${className}` : VARIANT_CLASSES[variant];
+  return jsx("button", { type, className: classes, ...props });
+}
+
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/react.js
 function hook(name) {
   const react = requireHostReact();
   const fn = react[name];
@@ -33,7 +62,41 @@ function useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
   return hook("useSyncExternalStore")(subscribe, getSnapshot, getServerSnapshot);
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/storage/cappedList.js
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/store.js
+function createExternalStore(initial) {
+  let state = initial;
+  const listeners = /* @__PURE__ */ new Set();
+  return {
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    getSnapshot: () => state,
+    setState: (next) => {
+      state = next;
+      for (const listener of listeners) {
+        listener();
+      }
+    }
+  };
+}
+
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/components/EmptyState/index.js
+function variantClasses(variant) {
+  if (variant === "centered") {
+    return "flex flex-1 items-center justify-center p-4 text-center text-[14px] text-muted";
+  }
+  return "text-[14px] text-muted";
+}
+function EmptyState({ children, variant = "inline", className }) {
+  const base = variantClasses(variant);
+  const classes = className ? `${base} ${className}` : base;
+  return jsx("div", { className: classes, children });
+}
+
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/storage/cappedList.js
 function mergeById(pending, existing, options) {
   if (pending.length === 0) {
     return existing.slice(0, options.cap);
@@ -115,28 +178,7 @@ function createCappedList(options) {
   };
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/store.js
-function createExternalStore(initial) {
-  let state = initial;
-  const listeners = /* @__PURE__ */ new Set();
-  return {
-    subscribe: (listener) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    getSnapshot: () => state,
-    setState: (next) => {
-      state = next;
-      for (const listener of listeners) {
-        listener();
-      }
-    }
-  };
-}
-
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/ui/format.js
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/ui/format.js
 function formatRelativeTime(ts, now = Date.now()) {
   const seconds = Math.floor((now - ts) / 1e3);
   if (seconds < 5) {
@@ -157,7 +199,7 @@ function formatRelativeTime(ts, now = Date.now()) {
   return `${days}d ago`;
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/ui/tokens.js
+// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/ui/tokens.js
 var METHOD_CLASSES = {
   get: "text-method-get",
   post: "text-method-post",
@@ -174,20 +216,6 @@ function methodColorClass(method) {
 // src/shared.ts
 var PERSISTED_CAP = 100;
 var STORAGE_KEY = "recent";
-
-// node_modules/.pnpm/@harborclient+sdk@0.4.3_react@19.2.7/node_modules/@harborclient/sdk/dist/runtime/jsx-runtime.js
-var Fragment = Symbol.for("@harborclient/sdk.Fragment");
-function build(type, props, key) {
-  const react = requireHostReact();
-  const elementType = type === Fragment ? react.Fragment : type;
-  const { children, ...rest } = props ?? {};
-  if (key !== void 0) {
-    rest.key = key;
-  }
-  return react.createElement(elementType, rest, children);
-}
-var jsx = build;
-var jsxs = build;
 
 // src/renderer.tsx
 var entrySequence = 0;
@@ -225,11 +253,7 @@ async function openRecentEntry(entry, hc) {
   });
 }
 function RecentRequestsSection({ hc }) {
-  const entries = useSyncExternalStore(
-    recentStore.subscribe,
-    recentStore.getSnapshot,
-    () => []
-  );
+  const entries = useSyncExternalStore(recentStore.subscribe, recentStore.getSnapshot, () => []);
   const handleOpenEntry = useCallback(
     (entry) => {
       void openRecentEntry(entry, hc);
@@ -244,25 +268,25 @@ function RecentRequestsSection({ hc }) {
   }, []);
   return /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-0.5", children: [
     entries.length > 0 ? /* @__PURE__ */ jsx("div", { className: "mb-1 flex justify-end px-1", children: /* @__PURE__ */ jsx(
-      "button",
+      Button,
       {
-        type: "button",
-        className: "cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[14px] text-muted hover:bg-selection/60 hover:text-text",
+        variant: "toolbar",
+        className: "text-[14px] text-muted hover:text-text",
         "aria-label": "Clear recent requests",
         onClick: handleClear,
         children: "Clear"
       }
     ) }) : null,
-    entries.length === 0 ? /* @__PURE__ */ jsx("div", { className: "px-2 py-1.5 text-[14px] text-muted", children: "No requests yet" }) : null,
+    entries.length === 0 ? /* @__PURE__ */ jsx(EmptyState, { variant: "inline", className: "px-2 py-1.5", children: "No requests yet" }) : null,
     entries.map((entry) => /* @__PURE__ */ jsx(
       "div",
       {
         className: "group flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-selection/60",
         children: /* @__PURE__ */ jsxs(
-          "button",
+          Button,
           {
-            type: "button",
-            className: "flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-0.5 text-left text-[14px] text-text",
+            variant: "toolbar",
+            className: "flex min-w-0 flex-1 items-center gap-1.5 py-0.5 text-left text-[14px] text-text hover:bg-transparent",
             title: entry.url,
             "aria-label": `Open ${entry.name}, ${entry.method} ${entry.url}, status ${entry.status}, ${formatRelativeTime(entry.ts)}`,
             onClick: () => handleOpenEntry(entry),
@@ -270,9 +294,7 @@ function RecentRequestsSection({ hc }) {
               /* @__PURE__ */ jsx(
                 "span",
                 {
-                  className: `w-12 shrink-0 font-medium uppercase ${methodColorClass(
-                    entry.method
-                  )}`,
+                  className: `w-12 shrink-0 font-medium uppercase ${methodColorClass(entry.method)}`,
                   "aria-hidden": true,
                   children: entry.method
                 }
