@@ -6,11 +6,6 @@ import type { BodyType } from '@harborclient/sdk';
 export const PERSISTED_CAP = 100;
 
 /**
- * SQLite storage key for the persisted recent-request list.
- */
-export const STORAGE_KEY = 'recent';
-
-/**
  * Serializable query parameter captured from a sent request.
  */
 export interface RecentEntryParam {

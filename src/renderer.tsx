@@ -2,10 +2,10 @@ import { installReact } from '@harborclient/sdk';
 import { Button, EmptyState } from '@harborclient/sdk/components';
 import { useCallback, useSyncExternalStore } from '@harborclient/sdk/react';
 import type { BodyType, PluginContext } from '@harborclient/sdk';
-import { createCappedList } from '@harborclient/sdk/storage';
 import { createExternalStore } from '@harborclient/sdk/store';
 import { formatRelativeTime, methodColorClass } from '@harborclient/sdk/ui';
-import { PERSISTED_CAP, STORAGE_KEY, type RecentEntry } from './shared';
+import { clearRecent, insertRecent, loadRecent, migrate } from './database';
+import { PERSISTED_CAP, type RecentEntry } from './shared';
 
 /** Sequence counter disambiguating ids captured within the same millisecond. */
 let entrySequence = 0;
@@ -24,6 +24,11 @@ function nextEntryId(): number {
  * Module-level recent list shared by capture handlers and the sidebar UI.
  */
 const recentStore = createExternalStore<RecentEntry[]>([]);
+
+/**
+ * Plugin database handle bound during activation.
+ */
+let database: PluginContext['database'];
 
 /**
  * Fills in defaults for entries persisted before capture metadata was expanded.
@@ -70,6 +75,38 @@ async function openRecentEntry(entry: RecentEntry, hc: PluginContext): Promise<v
   });
 }
 
+/**
+ * Clears all recent entries from the database and the UI store.
+ */
+function clearRecentEntries(): void {
+  void (async () => {
+    await clearRecent(database);
+    recentStore.setState([]);
+  })();
+}
+
+/**
+ * Header actions for the Recent Requests sidebar section.
+ */
+function RecentRequestsHeaderActions() {
+  const entries = useSyncExternalStore(recentStore.subscribe, recentStore.getSnapshot, () => []);
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  return (
+    <Button
+      variant="toolbar"
+      className="text-[14px] text-muted hover:text-text"
+      aria-label="Clear recent requests"
+      onClick={clearRecentEntries}
+    >
+      Clear
+    </Button>
+  );
+}
+
 interface RecentRequestsSectionProps {
   /**
    * Renderer plugin context from the host.
@@ -93,30 +130,8 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
     [hc]
   );
 
-  /**
-   * Clears all recent entries from storage and the UI store.
-   */
-  const handleClear = useCallback((): void => {
-    void (async () => {
-      await list.clear();
-      recentStore.setState([]);
-    })();
-  }, []);
-
   return (
     <div className="flex flex-col gap-0.5">
-      {entries.length > 0 ? (
-        <div className="mb-1 flex justify-end px-1">
-          <Button
-            variant="toolbar"
-            className="text-[14px] text-muted hover:text-text"
-            aria-label="Clear recent requests"
-            onClick={handleClear}
-          >
-            Clear
-          </Button>
-        </div>
-      ) : null}
       {entries.length === 0 ? (
         <EmptyState variant="inline" className="px-2 py-1.5">
           No requests yet
@@ -131,7 +146,9 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
             variant="toolbar"
             className="flex min-w-0 flex-1 items-center gap-1.5 py-0.5 text-left text-[14px] text-text hover:bg-transparent"
             title={entry.url}
-            aria-label={`Open ${entry.name}, ${entry.method} ${entry.url}, status ${entry.status}, ${formatRelativeTime(entry.ts)}`}
+            aria-label={`Open ${entry.name}, ${entry.method} ${entry.url}, status ${
+              entry.status
+            }, ${formatRelativeTime(entry.ts)}`}
             onClick={() => handleOpenEntry(entry)}
           >
             <span
@@ -152,9 +169,6 @@ function RecentRequestsSection({ hc }: RecentRequestsSectionProps) {
   );
 }
 
-/** Persistent capped list helper bound during activation. */
-let list: ReturnType<typeof createCappedList<RecentEntry>>;
-
 /**
  * Activates the renderer half: captures sends, persists recents, and registers the sidebar.
  *
@@ -162,19 +176,15 @@ let list: ReturnType<typeof createCappedList<RecentEntry>>;
  */
 export function activate(hc: PluginContext): void {
   installReact(hc.react);
+  database = hc.database;
 
-  list = createCappedList({
-    storage: hc.storage,
-    key: STORAGE_KEY,
-    cap: PERSISTED_CAP,
-    idOf: (entry) => String(entry.id)
-  });
-
-  void list.load().then((saved) => {
+  void (async () => {
+    await migrate(hc.database);
+    const saved = await loadRecent(hc.database, PERSISTED_CAP);
     if (saved.length > 0) {
       recentStore.setState(saved.map(normalizeRecentEntry));
     }
-  });
+  })();
 
   hc.subscriptions.push(
     hc.http.onAfterSend(async (request, response) => {
@@ -193,10 +203,8 @@ export function activate(hc: PluginContext): void {
         bodyType: request.bodyType as BodyType | undefined
       });
 
-      const merged = await list.merge([entry]);
-      if (merged) {
-        recentStore.setState(merged.map(normalizeRecentEntry));
-      }
+      const merged = await insertRecent(hc.database, entry, PERSISTED_CAP);
+      recentStore.setState(merged.map(normalizeRecentEntry));
     })
   );
 
@@ -212,7 +220,8 @@ export function activate(hc: PluginContext): void {
       id: 'recent-requests',
       title: 'Recent Requests',
       order: 10,
-      Component: RecentRequestsSectionHost
+      Component: RecentRequestsSectionHost,
+      headerActions: RecentRequestsHeaderActions
     })
   );
 }

@@ -1,14 +1,14 @@
 {
   "id": "com.harborclient.plugins.request-history",
   "name": "Request History",
-  "version": "1.0.4",
+  "version": "1.2.0",
   "author": "HarborClient",
   "description": "README.md",
   "engines": {
-    "harborclient": ">=1.8.4"
+    "harborclient": ">=1.8.22"
   },
   "renderer": "dist/renderer.js",
-  "permissions": ["ui", "storage", "http"],
+  "permissions": ["ui", "database", "http"],
   "contributes": {
     "sidebarSections": [
       {

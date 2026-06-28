@@ -28,8 +28,9 @@ assert(
 );
 assert(
   manifest.permissions.includes('ui') &&
-    manifest.permissions.includes('storage') &&
+    manifest.permissions.includes('database') &&
     manifest.permissions.includes('http') &&
+    !manifest.permissions.includes('storage') &&
     !manifest.permissions.includes('ipc'),
   'permissions'
 );

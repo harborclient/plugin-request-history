@@ -1,4 +1,4 @@
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/reactHost.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/reactHost.js
 var hostReact = null;
 function setHostReact(react) {
   hostReact = react;
@@ -12,12 +12,12 @@ function requireHostReact() {
   return hostReact;
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/index.js
 function installReact(react) {
   setHostReact(react);
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/jsx-runtime.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/jsx-runtime.js
 var Fragment = Symbol.for("@harborclient/sdk.Fragment");
 function build(type, props, key) {
   const react = requireHostReact();
@@ -31,7 +31,7 @@ function build(type, props, key) {
 var jsx = build;
 var jsxs = build;
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/components/Button/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/components/Button/index.js
 var VARIANT_CLASSES = {
   primary: "cursor-pointer rounded-md border border-transparent bg-accent px-3 py-1 text-[15px] font-medium text-white shadow-sm hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
   secondary: "cursor-pointer rounded-md border border-separator bg-control px-3 py-1 text-[15px] text-text shadow-sm hover:bg-selection disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
@@ -46,7 +46,7 @@ function Button({ variant = "primary", className, type = "button", ...props }) {
   return jsx("button", { type, className: classes, ...props });
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/react.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/react.js
 function hook(name) {
   const react = requireHostReact();
   const fn = react[name];
@@ -62,7 +62,7 @@ function useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
   return hook("useSyncExternalStore")(subscribe, getSnapshot, getServerSnapshot);
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/runtime/store.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/store.js
 function createExternalStore(initial) {
   let state = initial;
   const listeners = /* @__PURE__ */ new Set();
@@ -83,7 +83,7 @@ function createExternalStore(initial) {
   };
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/components/EmptyState/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/components/EmptyState/index.js
 function variantClasses(variant) {
   if (variant === "centered") {
     return "flex flex-1 items-center justify-center p-4 text-center text-[14px] text-muted";
@@ -96,89 +96,7 @@ function EmptyState({ children, variant = "inline", className }) {
   return jsx("div", { className: classes, children });
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/storage/cappedList.js
-function mergeById(pending, existing, options) {
-  if (pending.length === 0) {
-    return existing.slice(0, options.cap);
-  }
-  const seen = /* @__PURE__ */ new Set();
-  const merged = [];
-  for (const entry of [...pending, ...existing]) {
-    const id = options.idOf(entry);
-    if (seen.has(id)) {
-      continue;
-    }
-    seen.add(id);
-    merged.push(entry);
-    if (merged.length >= options.cap) {
-      break;
-    }
-  }
-  return merged;
-}
-var writeQueues = /* @__PURE__ */ new Map();
-async function enqueueStorageWrite(key, operation) {
-  const previous = writeQueues.get(key) ?? Promise.resolve();
-  let resolveDone;
-  const done = new Promise((resolve) => {
-    resolveDone = resolve;
-  });
-  writeQueues.set(key, previous.then(() => done));
-  await previous;
-  try {
-    return await operation();
-  } finally {
-    resolveDone();
-    if (writeQueues.get(key) === done) {
-      writeQueues.delete(key);
-    }
-  }
-}
-function createCappedList(options) {
-  const queueKey = options.key;
-  return {
-    load: async () => {
-      const saved = await options.storage.get(options.key);
-      return Array.isArray(saved) ? saved.slice(0, options.cap) : [];
-    },
-    merge: async (pending) => {
-      if (pending.length === 0) {
-        return null;
-      }
-      return enqueueStorageWrite(queueKey, async () => {
-        const existing = await options.storage.get(options.key);
-        const current = Array.isArray(existing) ? existing : [];
-        const merged = mergeById(pending, current, options);
-        if (merged.length === current.length) {
-          let unchanged = true;
-          for (let index = 0; index < merged.length; index += 1) {
-            if (options.idOf(merged[index]) !== options.idOf(current[index])) {
-              unchanged = false;
-              break;
-            }
-          }
-          if (unchanged) {
-            return null;
-          }
-        }
-        await options.storage.set(options.key, merged);
-        return merged;
-      });
-    },
-    save: async (entries) => {
-      await enqueueStorageWrite(queueKey, async () => {
-        await options.storage.set(options.key, entries.slice(0, options.cap));
-      });
-    },
-    clear: async () => {
-      await enqueueStorageWrite(queueKey, async () => {
-        await options.storage.set(options.key, []);
-      });
-    }
-  };
-}
-
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/ui/format.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/ui/format.js
 function formatRelativeTime(ts, now = Date.now()) {
   const seconds = Math.floor((now - ts) / 1e3);
   if (seconds < 5) {
@@ -199,7 +117,7 @@ function formatRelativeTime(ts, now = Date.now()) {
   return `${days}d ago`;
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.5.0_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_1ce3235504e871aa5dbe742de87ddfcd/node_modules/@harborclient/sdk/dist/ui/tokens.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/ui/tokens.js
 var METHOD_CLASSES = {
   get: "text-method-get",
   post: "text-method-post",
@@ -213,9 +131,106 @@ function methodColorClass(method) {
   return METHOD_CLASSES[method.toLowerCase()] ?? "text-text";
 }
 
+// src/database.ts
+var MIGRATION_SQL = `
+CREATE TABLE IF NOT EXISTS recent_requests (
+  id               INTEGER PRIMARY KEY,
+  method           TEXT    NOT NULL,
+  url              TEXT    NOT NULL,
+  status           INTEGER NOT NULL,
+  status_text      TEXT    NOT NULL,
+  ts               INTEGER NOT NULL,
+  saved_request_id INTEGER,
+  name             TEXT,
+  headers          TEXT    NOT NULL DEFAULT '{}',
+  params           TEXT    NOT NULL DEFAULT '[]',
+  body             TEXT,
+  body_type        TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_recent_requests_ts ON recent_requests (ts DESC);
+`;
+function parseHeaders(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+function parseParams(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+function rowToEntry(row) {
+  const headers = parseHeaders(row.headers);
+  const params = parseParams(row.params);
+  return {
+    id: row.id,
+    method: row.method,
+    url: row.url,
+    status: row.status,
+    statusText: row.status_text,
+    ts: row.ts,
+    savedRequestId: row.saved_request_id ?? void 0,
+    name: row.name ?? void 0,
+    headers,
+    params,
+    body: row.body ?? void 0,
+    bodyType: row.body_type ?? void 0
+  };
+}
+async function migrate(db) {
+  await db.exec(MIGRATION_SQL);
+}
+async function loadRecent(db, cap) {
+  const rows = await db.all(
+    `SELECT id, method, url, status, status_text, ts, saved_request_id, name, headers, params, body, body_type
+     FROM recent_requests
+     ORDER BY ts DESC
+     LIMIT ?`,
+    [cap]
+  );
+  return rows.map(rowToEntry);
+}
+async function insertRecent(db, entry, cap) {
+  await db.transaction(async (tx) => {
+    await tx.run(
+      `INSERT OR REPLACE INTO recent_requests
+        (id, method, url, status, status_text, ts, saved_request_id, name, headers, params, body, body_type)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        entry.id,
+        entry.method,
+        entry.url,
+        entry.status,
+        entry.statusText,
+        entry.ts,
+        entry.savedRequestId ?? null,
+        entry.name ?? null,
+        JSON.stringify(entry.headers ?? {}),
+        JSON.stringify(entry.params ?? []),
+        entry.body ?? null,
+        entry.bodyType ?? null
+      ]
+    );
+    await tx.run(
+      `DELETE FROM recent_requests
+       WHERE id NOT IN (
+         SELECT id FROM recent_requests ORDER BY ts DESC LIMIT ?
+       )`,
+      [cap]
+    );
+  });
+  return loadRecent(db, cap);
+}
+async function clearRecent(db) {
+  await db.run("DELETE FROM recent_requests");
+}
+
 // src/shared.ts
 var PERSISTED_CAP = 100;
-var STORAGE_KEY = "recent";
 
 // src/renderer.tsx
 var entrySequence = 0;
@@ -224,6 +239,7 @@ function nextEntryId() {
   return Date.now() * 1e3 + entrySequence % 1e3;
 }
 var recentStore = createExternalStore([]);
+var database;
 function normalizeRecentEntry(entry) {
   return {
     ...entry,
@@ -252,6 +268,28 @@ async function openRecentEntry(entry, hc) {
     bodyType: normalized.bodyType
   });
 }
+function clearRecentEntries() {
+  void (async () => {
+    await clearRecent(database);
+    recentStore.setState([]);
+  })();
+}
+function RecentRequestsHeaderActions() {
+  const entries = useSyncExternalStore(recentStore.subscribe, recentStore.getSnapshot, () => []);
+  if (entries.length === 0) {
+    return null;
+  }
+  return /* @__PURE__ */ jsx(
+    Button,
+    {
+      variant: "toolbar",
+      className: "text-[14px] text-muted hover:text-text",
+      "aria-label": "Clear recent requests",
+      onClick: clearRecentEntries,
+      children: "Clear"
+    }
+  );
+}
 function RecentRequestsSection({ hc }) {
   const entries = useSyncExternalStore(recentStore.subscribe, recentStore.getSnapshot, () => []);
   const handleOpenEntry = useCallback(
@@ -260,23 +298,7 @@ function RecentRequestsSection({ hc }) {
     },
     [hc]
   );
-  const handleClear = useCallback(() => {
-    void (async () => {
-      await list.clear();
-      recentStore.setState([]);
-    })();
-  }, []);
   return /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-0.5", children: [
-    entries.length > 0 ? /* @__PURE__ */ jsx("div", { className: "mb-1 flex justify-end px-1", children: /* @__PURE__ */ jsx(
-      Button,
-      {
-        variant: "toolbar",
-        className: "text-[14px] text-muted hover:text-text",
-        "aria-label": "Clear recent requests",
-        onClick: handleClear,
-        children: "Clear"
-      }
-    ) }) : null,
     entries.length === 0 ? /* @__PURE__ */ jsx(EmptyState, { variant: "inline", className: "px-2 py-1.5", children: "No requests yet" }) : null,
     entries.map((entry) => /* @__PURE__ */ jsx(
       "div",
@@ -314,20 +336,16 @@ function RecentRequestsSection({ hc }) {
     ))
   ] });
 }
-var list;
 function activate(hc) {
   installReact(hc.react);
-  list = createCappedList({
-    storage: hc.storage,
-    key: STORAGE_KEY,
-    cap: PERSISTED_CAP,
-    idOf: (entry) => String(entry.id)
-  });
-  void list.load().then((saved) => {
+  database = hc.database;
+  void (async () => {
+    await migrate(hc.database);
+    const saved = await loadRecent(hc.database, PERSISTED_CAP);
     if (saved.length > 0) {
       recentStore.setState(saved.map(normalizeRecentEntry));
     }
-  });
+  })();
   hc.subscriptions.push(
     hc.http.onAfterSend(async (request, response) => {
       const entry = normalizeRecentEntry({
@@ -344,10 +362,8 @@ function activate(hc) {
         body: request.body,
         bodyType: request.bodyType
       });
-      const merged = await list.merge([entry]);
-      if (merged) {
-        recentStore.setState(merged.map(normalizeRecentEntry));
-      }
+      const merged = await insertRecent(hc.database, entry, PERSISTED_CAP);
+      recentStore.setState(merged.map(normalizeRecentEntry));
     })
   );
   function RecentRequestsSectionHost() {
@@ -358,7 +374,8 @@ function activate(hc) {
       id: "recent-requests",
       title: "Recent Requests",
       order: 10,
-      Component: RecentRequestsSectionHost
+      Component: RecentRequestsSectionHost,
+      headerActions: RecentRequestsHeaderActions
     })
   );
 }
