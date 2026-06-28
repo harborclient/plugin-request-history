@@ -2,6 +2,9 @@
 
 A HarborClient plugin that records every completed HTTP request and displays them in a **Recent Requests** sidebar section below Collections and Environments.
 
+![Screenshot](screenshot.png)
+
+
 ## Features
 
 - Captures method, URL, status code, and timestamp for each send
