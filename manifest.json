@@ -1,7 +1,7 @@
 {
-  "id": "com.harborclient.plugins.request-history",
-  "name": "Request History",
-  "version": "1.2.0",
+  "id": "com.harborclient.plugins.request-history-sidebar",
+  "name": "Request History Sidebar",
+  "version": "1.2.1",
   "author": "HarborClient",
   "description": "README.md",
   "engines": {

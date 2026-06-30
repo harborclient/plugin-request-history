@@ -1,9 +1,26 @@
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/reactHost.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/runtime/reactHost.js
+var HOST_REACT_GLOBAL_KEY = "__HARBORCLIENT_HOST_REACT__";
 var hostReact = null;
+function readGlobalHostReact() {
+  if (typeof globalThis === "undefined") {
+    return null;
+  }
+  const candidate = globalThis[HOST_REACT_GLOBAL_KEY];
+  return candidate ?? null;
+}
 function setHostReact(react) {
   hostReact = react;
+  if (typeof globalThis !== "undefined") {
+    globalThis[HOST_REACT_GLOBAL_KEY] = react;
+  }
 }
 function requireHostReact() {
+  if (hostReact == null) {
+    const globalReact = readGlobalHostReact();
+    if (globalReact != null) {
+      hostReact = globalReact;
+    }
+  }
   if (hostReact == null) {
     throw new Error(
       "Plugin React host is not installed. Call installReact(hc.react) at the start of activate()."
@@ -12,12 +29,12 @@ function requireHostReact() {
   return hostReact;
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/runtime/index.js
 function installReact(react) {
   setHostReact(react);
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/jsx-runtime.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/runtime/jsx-runtime.js
 var Fragment = Symbol.for("@harborclient/sdk.Fragment");
 function build(type, props, key) {
   const react = requireHostReact();
@@ -31,22 +48,22 @@ function build(type, props, key) {
 var jsx = build;
 var jsxs = build;
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/components/Button/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/components/Button/index.js
 var VARIANT_CLASSES = {
-  primary: "cursor-pointer rounded-md border border-transparent bg-accent px-3 py-1 text-[15px] font-medium text-white shadow-sm hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
-  secondary: "cursor-pointer rounded-md border border-separator bg-control px-3 py-1 text-[15px] text-text shadow-sm hover:bg-selection disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
-  primaryDanger: "cursor-pointer rounded-md border border-transparent bg-danger px-3 py-1 text-[15px] font-medium text-white shadow-sm hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
-  secondaryDanger: "cursor-pointer rounded-md border border-separator bg-control px-3 py-1 text-[15px] text-danger shadow-sm hover:bg-danger/15 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
-  toolbar: "cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[15px] hover:bg-selection app-no-drag",
-  icon: "inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:bg-selection hover:text-text app-no-drag",
-  iconDanger: "inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:opacity-100 hover:bg-danger/15 hover:text-danger app-no-drag"
+  primary: "inline-flex min-h-[34px] cursor-pointer items-center justify-center rounded-md border border-transparent bg-accent px-3 py-1 text-[15px] font-medium text-white shadow-sm hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  secondary: "inline-flex min-h-[34px] cursor-pointer items-center justify-center rounded-md border border-separator bg-control px-3 py-1 text-[15px] text-text shadow-sm hover:bg-selection disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  primaryDanger: "inline-flex min-h-[34px] cursor-pointer items-center justify-center rounded-md border border-transparent bg-danger px-3 py-1 text-[15px] font-medium text-white shadow-sm hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  secondaryDanger: "inline-flex min-h-[34px] cursor-pointer items-center justify-center rounded-md border border-separator bg-control px-3 py-1 text-[15px] text-danger shadow-sm hover:bg-danger/15 disabled:cursor-not-allowed disabled:opacity-50 app-no-drag",
+  toolbar: "inline-flex min-h-[34px] cursor-pointer items-center rounded-md border-none bg-transparent px-2 py-1 text-[15px] hover:bg-selection app-no-drag",
+  icon: "inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-muted hover:bg-selection hover:text-text app-no-drag",
+  iconDanger: "inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-muted hover:bg-danger/15 hover:text-danger app-no-drag"
 };
-function Button({ variant = "primary", className, type = "button", ...props }) {
+function Button({ variant = "primary", className, type = "button", innerRef, ...props }) {
   const classes = className ? `${VARIANT_CLASSES[variant]} ${className}` : VARIANT_CLASSES[variant];
-  return jsx("button", { type, className: classes, ...props });
+  return jsx("button", { ref: innerRef, type, className: classes, ...props });
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/react.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/runtime/react.js
 function hook(name) {
   const react = requireHostReact();
   const fn = react[name];
@@ -62,7 +79,7 @@ function useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
   return hook("useSyncExternalStore")(subscribe, getSnapshot, getServerSnapshot);
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/runtime/store.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/runtime/store.js
 function createExternalStore(initial) {
   let state = initial;
   const listeners = /* @__PURE__ */ new Set();
@@ -83,7 +100,7 @@ function createExternalStore(initial) {
   };
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/components/EmptyState/index.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/components/EmptyState/index.js
 function variantClasses(variant) {
   if (variant === "centered") {
     return "flex flex-1 items-center justify-center p-4 text-center text-[14px] text-muted";
@@ -96,7 +113,7 @@ function EmptyState({ children, variant = "inline", className }) {
   return jsx("div", { className: classes, children });
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/ui/format.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/ui/format.js
 function formatRelativeTime(ts, now = Date.now()) {
   const seconds = Math.floor((now - ts) / 1e3);
   if (seconds < 5) {
@@ -117,7 +134,7 @@ function formatRelativeTime(ts, now = Date.now()) {
   return `${days}d ago`;
 }
 
-// node_modules/.pnpm/@harborclient+sdk@0.6.1_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search@_b9c7ef299984561e82325e9417cb9005/node_modules/@harborclient/sdk/dist/ui/tokens.js
+// node_modules/.pnpm/@harborclient+sdk@0.6.16_@babel+runtime@8.0.0_@codemirror+lint@6.9.7_@codemirror+search_3fc0958633f2984a47502b28f4e793e7/node_modules/@harborclient/sdk/dist/ui/tokens.js
 var METHOD_CLASSES = {
   get: "text-method-get",
   post: "text-method-post",
