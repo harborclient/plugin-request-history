@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "pluginId": "com.harborclient.plugins.request-history-sidebar",
-  "pluginVersion": "1.2.1",
+  "pluginVersion": "1.2.2",
   "algorithm": "Ed25519",
   "files": [
     {
       "path": ".eslintcache",
-      "sha256": "0c2bfc9efbb1e2126ada69af1420b79c38bf19f36d0cce6ed7e8eb1c1cbc5d7d"
+      "sha256": "c7d85122d97ff6b818efe3737e544be5a31a49a30bfe10a8b3778806bf25aafa"
     },
     {
       "path": ".gitignore",
@@ -22,23 +22,23 @@
     },
     {
       "path": "dist/renderer.js",
-      "sha256": "04bb8a49e10ef3be01bc4363cfe5fe901ee18d54d8b272f7157bdac2124c8b96"
+      "sha256": "9a2c87332bcac3ad0db5d5435f69d80b42cb6e41e52292b9097e23b43007dc5e"
     },
     {
       "path": "eslint.config.mjs",
-      "sha256": "9b3e9cb152d0f4e901c42dec8ae980024f6d0425f2c71933ba5f8ad3839fd43b"
+      "sha256": "d74a66f91fd2bcd4d548f8fbff511fb47e4db06620ac137b29a8867e377c259d"
     },
     {
       "path": "manifest.json",
-      "sha256": "6b9727b54ffe82cf520716ac9d65605c9b81442f6c77f1bc95907c378df830af"
+      "sha256": "e379b2d792871ea3013fed3d30b46fd01aa364de4aebdf4d63095d51262853aa"
     },
     {
       "path": "package.json",
-      "sha256": "aac00b64c29ab9f6bc7422559cd653928dc5c7749579ea23dadfb1af32e65588"
+      "sha256": "61686ad3af784f57843adce0b4a9aca2b87aa6aad2c72096849156496b09a40f"
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "ec02d2b5a2e3b3f9c7e9017fffbb9adf21f6d4be59345ce44fc50f5939e57f43"
+      "sha256": "9ab3a93a07215cf8a41244c1e4c6e7abb518cdddcc87ce0f0ad34d0a222b15d2"
     },
     {
       "path": "README.md",
@@ -50,7 +50,7 @@
     },
     {
       "path": "scripts/build.mjs",
-      "sha256": "100cfa74988d39d6a86e8f057d11ffab6195027886254295dd366af8d31772a9"
+      "sha256": "b6184b7583f318543f8f3e6c3c3bf2eda7557d59a6e7ee89b4509d2b5d839434"
     },
     {
       "path": "scripts/plugin-sign.ts",
@@ -86,8 +86,8 @@
     },
     {
       "path": "tsconfig.json",
-      "sha256": "2ef2fadc34ba26963e76cea067ce08037cfa1284600e2f93772a719f638026d9"
+      "sha256": "663c22f2cb634722bc1c1191c4808b53c89d930979d4936cb6d0a539f4476ac9"
     }
   ],
-  "signature": "bQRNjg9ayXUkMinHdmYrwCfnfEleyb0FCTpbd3IZibvFmvYctaEqdRXOeltUBx3lfXM6dGiACoGH1H+D0xnXDA=="
+  "signature": "oSSZyYUpficPazO/hT9yUUy9BoyH5xnKdopAsU0ZsjgAUN3n8wunMVcFTc+5dt/ZEKYKdaAnbK0IJxJ+dDP5DA=="
 }
