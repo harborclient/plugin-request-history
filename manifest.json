@@ -1,11 +1,16 @@
 {
   "id": "com.harborclient.plugins.request-history-sidebar",
   "name": "Request History Sidebar",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "author": "HarborClient",
   "description": "README.md",
+  "summary": "Records every completed HTTP request and displays them in a Recent Requests sidebar section.",
+  "categories": ["requests"],
+  "screenshots": [
+    "https://raw.githubusercontent.com/harborclient/plugin-request-history/main/screenshot.png"
+  ],
   "engines": {
-    "harborclient": ">=1.8.22"
+    "harborclient": ">=1.9.0"
   },
   "renderer": "dist/renderer.js",
   "permissions": ["ui", "database", "http"],
